@@ -133,29 +133,33 @@ void HerelinkCorePlugin::factValueGridCreateDefaultSettings(const QString& defau
 
     InstrumentValueData* value = column->value<InstrumentValueData*>(rowIndex++);
     value->setFact("Vehicle", "AltitudeRelative");
-    value->setIcon("arrow-thick-up.svg");
-    value->setText(value->fact()->shortDescription());
+    //value->setIcon("arrow-thick-up.svg");
+    value->setText("Alt (rel)");
+    //value->setText(value->fact()->shortDescription());
     value->setShowUnits(true);
 
     value = column->value<InstrumentValueData*>(rowIndex++);
     value->setFact("Vehicle", "DistanceToHome");
-    value->setIcon("bookmark copy 3.svg");
-    value->setText(value->fact()->shortDescription());
+    //value->setIcon("bookmark copy 3.svg");
+    //value->setText(value->fact()->shortDescription());
+    value->setText("Home Dist");
     value->setShowUnits(true);
 
     rowIndex    = 0;
     column      = factValueGrid.columns()->value<QmlObjectListModel*>(1);
 
     value = column->value<InstrumentValueData*>(rowIndex++);
-    value->setFact("Vehicle", "ClimbRate");
-    value->setIcon("arrow-simple-up.svg");
-    value->setText(value->fact()->shortDescription());
+    value->setFact("Vehicle", "FlightTime");
+    //value->setIcon("arrow-simple-up.svg");
+    //value->setText(value->fact()->shortDescription());
+    value->setText("Flight Time");
     value->setShowUnits(true);
 
     value = column->value<InstrumentValueData*>(rowIndex++);
     value->setFact("Vehicle", "GroundSpeed");
-    value->setIcon("arrow-simple-right.svg");
-    value->setText(value->fact()->shortDescription());
+    //value->setIcon("arrow-simple-right.svg");
+    //value->setText(value->fact()->shortDescription());
+    value->setText("Speed");
     value->setShowUnits(true);
 
 
@@ -178,14 +182,18 @@ void HerelinkCorePlugin::factValueGridCreateDefaultSettings(const QString& defau
     column      = factValueGrid.columns()->value<QmlObjectListModel*>(includeFWValues ? 3 : 2);
 
     value = column->value<InstrumentValueData*>(rowIndex++);
-    value->setFact("Vehicle", "FlightTime");
-    value->setIcon("timer.svg");
-    value->setText(value->fact()->shortDescription());
+    //value->setFact("Vehicle", "FlightTime");
+    value->setFact("Battery0","Voltage");
+    //value->setIcon("timer.svg");
+    //value->setText(value->fact()->shortDescription());
+    value->setText("Voltage");
     value->setShowUnits(false);
 
     value = column->value<InstrumentValueData*>(rowIndex++);
-    value->setFact("Vehicle", "FlightDistance");
-    value->setIcon("travel-walk.svg");
-    value->setText(value->fact()->shortDescription());
+    //value->setFact("Vehicle", "FlightDistance");
+    value->setFact("Battery0","Current");
+    //value->setIcon("travel-walk.svg");
+    //value->setText(value->fact()->shortDescription());
+    value->setText("Current");
     value->setShowUnits(true);
 }

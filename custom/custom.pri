@@ -5,7 +5,7 @@ message("Adding Custom Herelink Plugin")
 
 CUSTOM_QGC_VER_MAJOR = 4
 CUSTOM_QGC_VER_MINOR = 4
-CUSTOM_QGC_VER_PATCH = 0
+CUSTOM_QGC_VER_PATCH = 1
 CUSTOM_QGC_VER_FIRST_BUILD = 0
 
 linux {
@@ -33,18 +33,18 @@ DEFINES += CUSTOMHEADER=\"\\\"HerelinkCorePlugin.h\\\"\"
 DEFINES += CUSTOMCLASS=HerelinkCorePlugin
 
 TARGET   = Herelink-QGroundControl
-DEFINES += QGC_APPLICATION_NAME='"\\\"Herelink QGroundControl\\\""'
+DEFINES += QGC_APPLICATION_NAME='"\\\"Arcsky Control\\\""'
 
-DEFINES += QGC_ORG_NAME=\"\\\"cubepilot.org\\\"\"
-DEFINES += QGC_ORG_DOMAIN=\"\\\"org.cubepilot\\\"\"
+DEFINES += QGC_ORG_NAME=\"\\\"Arcsky\\\"\"
+DEFINES += QGC_ORG_DOMAIN=\"\\\"www.arcskytech.com\\\"\"
 
-QGC_APP_NAME        = "Herelink QGroundControl"
-QGC_BINARY_NAME     = "Herelink-QGroundControl"
-QGC_ORG_NAME        = "Cubepilot"
-QGC_ORG_DOMAIN      = "org.cubepilot"
-QGC_ANDROID_PACKAGE = "org.cubepilot.herelink_qgroundcontrol"
-QGC_APP_DESCRIPTION = "Herelink QGroundControl"
-QGC_APP_COPYRIGHT   = "Copyright (C) 2024 Cubepilot. All rights reserved."
+QGC_APP_NAME        = "Arcsky Control"
+QGC_BINARY_NAME     = "Arcsky Control"
+QGC_ORG_NAME        = "Arcsky"
+QGC_ORG_DOMAIN      = "www.arcskytech.com"
+QGC_ANDROID_PACKAGE = "arcsky.ArcskyControl"
+QGC_APP_DESCRIPTION = "Arcsky Ground Control Station"
+QGC_APP_COPYRIGHT   = "Copyright (C) 2024 Arcsky. All rights reserved."
 
 # Remove code which the Herelink doesn't need
 DEFINES += \

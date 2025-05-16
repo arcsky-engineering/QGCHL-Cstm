@@ -694,6 +694,22 @@ void Vehicle::_mavlinkMessageReceived(LinkInterface* link, mavlink_message_t mes
         factGroup->handleMessage(this, message);
     }
 
+//    // check to see if we have timed out on the generator status message
+//    if (Vehicle::_generatorFactGroup._msgReceived> 0)
+//    {
+//        // start timer
+//        _genStatusTimer.setInterval(10000);
+//        Vehicle::_generatorFactGroup._msgReceived = 0;
+//        Vehicle::_generatorFactGroup._timeoutCntStarted = 1;
+//    }
+
+//    if ((Vehicle::_generatorFactGroup._timeoutCntStarted > 0) && (!_genStatusTimer.isActive()))
+//    {
+//        // set timeout flag
+//        Vehicle::_generatorFactGroup._timeout = 1;
+//        Vehicle::_generatorFactGroup._timeoutCntStarted = 0;
+//    }
+
     switch (message.msgid) {
     case MAVLINK_MSG_ID_HOME_POSITION:
         _handleHomePosition(message);

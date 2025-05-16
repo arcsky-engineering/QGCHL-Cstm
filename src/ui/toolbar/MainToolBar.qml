@@ -77,7 +77,22 @@ Rectangle {
             logo:                   true
             onClicked:              mainWindow.showToolSelectDialog()
         }
-
+        QGCToolBarButton {
+            id:                     flyButton
+            Layout.preferredHeight: viewButtonRow.height
+            icon.source:            "/qmlimages/PaperPlane.svg"
+            logo:                   true
+            onClicked:              mainWindow.showFlyView()
+            visible:                currentToolbar === planViewToolbar
+        }
+        QGCToolBarButton {
+            id:                     planButton
+            Layout.preferredHeight: viewButtonRow.height
+            icon.source:            "/qmlimages/Plan.svg"
+            logo:                   true
+            onClicked:              mainWindow.showPlanView()
+            visible:                currentToolbar === flyViewToolbar
+        }
         MainStatusIndicator {
             Layout.preferredHeight: viewButtonRow.height
             visible:                currentToolbar === flyViewToolbar

@@ -10,6 +10,7 @@
 import QtQuick 2.12
 
 import QGroundControl               1.0
+import QGroundControl.Controls      1.0
 import QGroundControl.ScreenTools   1.0
 
 //-------------------------------------------------------------------------

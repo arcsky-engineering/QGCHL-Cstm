@@ -82,6 +82,10 @@ void VehicleGeneratorFactGroup::_handleGeneratorStatus(mavlink_message_t& messag
     genTemp()->setRawValue              (generator.generator_temperature == INT16_MAX ? qQNaN() : generator.generator_temperature);
     runtime()->setRawValue              (generator.runtime == UINT32_MAX ? qQNaN() : generator.runtime);
     timeMaintenance()->setRawValue      (generator.time_until_maintenance == INT32_MAX ? qQNaN() : generator.time_until_maintenance);
+
+    _msgReceived = 1;
+    //VehicleGeneratorFactGroup::_msgReceived = 1;
+    //VehicleGeneratorFactGroup::_timeout = 0;
 }
 
 void VehicleGeneratorFactGroup::_updateGeneratorFlags() {

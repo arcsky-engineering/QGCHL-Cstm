@@ -60,7 +60,7 @@ Rectangle {
                 sourceSize.width:   width
                 color:              qgcPal.text
                 fillMode:           Image.PreserveAspectFit
-                visible:            bottomMode
+                visible:            false //bottomMode
 
                 QGCMouseArea {
                     fillItem:   parent

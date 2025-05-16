@@ -15,7 +15,7 @@
 
 APMFlightModesComponent::APMFlightModesComponent(Vehicle* vehicle, AutoPilotPlugin* autopilot, QObject* parent) :
     VehicleComponent(vehicle, autopilot, parent),
-    _name(tr("Flight Modes"))
+    _name(tr("RC Options"))//_name(tr("Flight Modes"))
 {
 }
 
