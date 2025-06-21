@@ -103,6 +103,9 @@ private:
     QTimer* _reconnectTimer = nullptr;
     int _retryCount = 0;
     const int _maxRetries = 5; // max retry attempts
+    QTimer* _watchdogTimer = nullptr;
+    static constexpr int _watchdogTimeoutMSecs = 10000; // 10s timeout
+
 
     bool            _enabled = false;
 

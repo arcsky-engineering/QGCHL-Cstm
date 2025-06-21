@@ -101,7 +101,7 @@ Item {
         width:              height
         anchors.top:        parent.top
         anchors.bottom:     parent.bottom
-        source:             _activeVehicle.gps.lock.rawValue > 4 ? "/qmlimages/RTK.svg" : "/qmlimages/Gps.svg"
+        source:             _activeVehicle.gps.lock.rawValue === 6 ? "/qmlimages/RTK-fixed.svg" : _activeVehicle.gps.lock.rawValue === 5 ? "/qmlimages/RTK-float.svg" : "/qmlimages/Gps.svg"
         fillMode:           Image.PreserveAspectFit
         sourceSize.height:  height
         opacity:            (_activeVehicle && _activeVehicle.gps.count.value >= 0) ? 1 : 0.5
