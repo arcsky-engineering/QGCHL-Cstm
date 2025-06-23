@@ -1311,7 +1311,7 @@ void MockLink::_sendGpsRawInt(void)
                                       mavlinkChannel(),
                                       &msg,
                                       timeTick++,                           // time since boot
-                                      3,                                    // 3D fix
+                                      5,                                    // 3D fix
                                       (int32_t)(_vehicleLatitude  * 1E7),
                                       (int32_t)(_vehicleLongitude * 1E7),
                                       (int32_t)(_vehicleAltitude  * 1000),

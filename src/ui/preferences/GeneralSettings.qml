@@ -1061,7 +1061,7 @@ Rectangle {
                     Item { width: 1; height: _margins; visible: ntripSectionLabel.visible }
                     QGCLabel {
                         id:         ntripSectionLabel
-                        text:       qsTr("NTRIP / RTCM (Experimental)")
+                        text:       qsTr("NTRIP / RTCM (Experimental) - Must restart app to change")
                         visible:    QGroundControl.settingsManager.ntripSettings.visible
                     }
                     Rectangle {
@@ -1070,6 +1070,7 @@ Rectangle {
                         color:                  qgcPal.windowShade
                         visible:                ntripSectionLabel.visible
                         Layout.fillWidth:       true
+                        enabled:                QGroundControl.ntrip.masterEnable && !QGroundControl.ntrip.enabled
 
                         GridLayout {
                             id:                         ntripGrid
@@ -1154,6 +1155,14 @@ Rectangle {
                                 visible:                ntripGrid.ntripSettings.ntripWhitelist.visible
                                 Layout.fillWidth:       true
                             }
+//                            QGCButton {
+//                                text: qsTr("Apply NTRIP Settings")
+//                                Layout.columnSpan: 2
+//                                //enabled: !QGroundControl.ntrip.enabled
+//                                onClicked: {
+//                                    //QGroundControl.ntrip.applySettings()
+//                                }
+//                            }
                         }
                     } // end of NTRIP
                     Item { width: 1; height: _margins; visible: adsbSectionLabel.visible }
