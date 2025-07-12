@@ -164,7 +164,7 @@ signals:
 
 public slots:
     void _tcpError          (const QString errorMsg);
-    void applySettings();
+    //void applySettings();
 private slots:
 
 private:

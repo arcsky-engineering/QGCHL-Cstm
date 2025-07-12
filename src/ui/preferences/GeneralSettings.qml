@@ -1070,7 +1070,6 @@ Rectangle {
                         color:                  qgcPal.windowShade
                         visible:                ntripSectionLabel.visible
                         Layout.fillWidth:       true
-                        enabled:                QGroundControl.ntrip.masterEnable && !QGroundControl.ntrip.enabled
 
                         GridLayout {
                             id:                         ntripGrid
@@ -1094,6 +1093,7 @@ Rectangle {
                                 fact:                   ntripGrid.ntripSettings.ntripEnableVRS
                                 visible:                ntripGrid.ntripSettings.ntripEnableVRS.visible
                                 Layout.columnSpan:      2
+                                enabled:                !QGroundControl.ntrip.enabled
                             }
 
                             QGCLabel {
@@ -1104,6 +1104,7 @@ Rectangle {
                                 fact:                   ntripGrid.ntripSettings.ntripServerHostAddress
                                 visible:                ntripGrid.ntripSettings.ntripServerHostAddress.visible
                                 Layout.fillWidth:       true
+                                enabled:                !QGroundControl.ntrip.enabled
                             }
 
                             QGCLabel {
@@ -1114,6 +1115,7 @@ Rectangle {
                                 fact:                   ntripGrid.ntripSettings.ntripServerPort
                                 visible:                ntripGrid.ntripSettings.ntripServerPort.visible
                                 Layout.preferredWidth:  _valueFieldWidth
+                                enabled:                !QGroundControl.ntrip.enabled
                             }
 
                             QGCLabel {
@@ -1124,6 +1126,7 @@ Rectangle {
                                 fact:                   ntripGrid.ntripSettings.ntripUsername
                                 visible:                ntripGrid.ntripSettings.ntripUsername.visible
                                 Layout.fillWidth:       true
+                                enabled:                !QGroundControl.ntrip.enabled
                             }
 
                             QGCLabel {
@@ -1134,6 +1137,7 @@ Rectangle {
                                 fact:                   ntripGrid.ntripSettings.ntripPassword
                                 visible:                ntripGrid.ntripSettings.ntripPassword.visible
                                 Layout.fillWidth:       true
+                                enabled:                !QGroundControl.ntrip.enabled
                             }
 
                             QGCLabel {
@@ -1144,6 +1148,7 @@ Rectangle {
                                 fact:                   ntripGrid.ntripSettings.ntripMountpoint
                                 visible:                ntripGrid.ntripSettings.ntripMountpoint.visible
                                 Layout.fillWidth:       true
+                                enabled:                !QGroundControl.ntrip.enabled
                             }
 
                             QGCLabel {
@@ -1154,6 +1159,7 @@ Rectangle {
                                 fact:                   ntripGrid.ntripSettings.ntripWhitelist
                                 visible:                ntripGrid.ntripSettings.ntripWhitelist.visible
                                 Layout.fillWidth:       true
+                                enabled:                !QGroundControl.ntrip.enabled
                             }
 //                            QGCButton {
 //                                text: qsTr("Apply NTRIP Settings")

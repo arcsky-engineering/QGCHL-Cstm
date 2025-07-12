@@ -100,24 +100,24 @@ bool NTRIP::masterEnable() const {
     return settings->ntripServerConnectEnabled()->rawValue().toBool();
 }
 
-void NTRIP::applySettings() {
-    // Fully shutdown and restart using new parameters
-    if (_tcpLink) {
-        _tcpLink->setEnabled(false);
-        _tcpLink->quit();
-        _tcpLink->wait();
-        delete _tcpLink;
-        _tcpLink = nullptr;
-    }
+//void NTRIP::applySettings() {
+//    // Fully shutdown and restart using new parameters
+//    if (_tcpLink) {
+//        _tcpLink->setEnabled(false);
+//        _tcpLink->quit();
+//        _tcpLink->wait();
+//        delete _tcpLink;
+//        _tcpLink = nullptr;
+//    }
 
-    if (_rtcmMavlink) {
-        delete _rtcmMavlink;
-        _rtcmMavlink = nullptr;
-    }
+//    if (_rtcmMavlink) {
+//        delete _rtcmMavlink;
+//        _rtcmMavlink = nullptr;
+//    }
 
-    // Re-init link using new parameters
-    _initLink();
-}
+//    // Re-init link using new parameters
+//    _initLink();
+//}
 
 // ===================== NTRIPTCPLink =========================
 
@@ -235,7 +235,7 @@ void NTRIPTCPLink::setEnabled(bool en) {
     if (_enabled) {
         QMetaObject::invokeMethod(this, "_startNTRIP", Qt::QueuedConnection);
     } else {
-        QMetaObject::invokeMethod(this, "_stopNTRIP", Qt::QueuedConnection);
+        QMetaObject::invokeMethod(this, "_stopNTRIP", Qt::BlockingQueuedConnection);
     }
 }
 
@@ -249,28 +249,70 @@ void NTRIPTCPLink::_startNTRIP() {
 }
 
 void NTRIPTCPLink::_stopNTRIP() {
-    qCDebug(NTRIPLog) << "Stopping NTRIP connection";
+    //qCDebug(NTRIPLog) << "Stopping NTRIP connection";
 
-    // Stop all timers safely
-    if (_watchdogTimer && _watchdogTimer->isActive())
-        _watchdogTimer->stop();
-
-    if (_reconnectTimer && _reconnectTimer->isActive())
-        _reconnectTimer->stop();
-
-    if (_vrsSendTimer && _vrsSendTimer->isActive())
-        _vrsSendTimer->stop();
-
-    // Disconnect and delete the socket
-    if (_socket) {
-        _socket->disconnectFromHost();
-        _socket->deleteLater();   // safer: let event loop delete
-        _socket = nullptr;
+    if (_watchdogTimer) {
+        //qCDebug(NTRIPLog) << "Before stopping Watchdog";
+        if (_watchdogTimer->isActive()) {
+            //qCDebug(NTRIPLog) << "Watchdog is active, stopping";
+            _watchdogTimer->stop();
+        } else {
+            //qCDebug(NTRIPLog) << "Watchdog is not active";
+        }
+        //qCDebug(NTRIPLog) << "After stopping Watchdog";
+    } else {
+        //qCDebug(NTRIPLog) << "Watchdog timer nullptr";
     }
 
-    // reset all the retry logic?
+    if (_reconnectTimer) {
+        //qCDebug(NTRIPLog) << "Before stopping Reconnect";
+        if (_reconnectTimer->isActive()) {
+            //qCDebug(NTRIPLog) << "Reconnect is active, stopping";
+            _reconnectTimer->stop();
+        } else {
+            //qCDebug(NTRIPLog) << "Reconnect is not active";
+        }
+        //qCDebug(NTRIPLog) << "After stopping Reconnect";
+    } else {
+        //qCDebug(NTRIPLog) << "Reconnect timer nullptr";
+    }
+
+    if (_isVRSEnable) {
+        if (_vrsSendTimer) {
+            //qCDebug(NTRIPLog) << "Before stopping VRS";
+            if (_vrsSendTimer->isActive()) {
+                //qCDebug(NTRIPLog) << "VRS is active, stopping";
+                _vrsSendTimer->stop();
+            } else {
+                //qCDebug(NTRIPLog) << "VRS is not active";
+            }
+            //qCDebug(NTRIPLog) << "After stopping VRS";
+        } else {
+            //qCDebug(NTRIPLog) << "VRS timer nullptr";
+        }
+    }
+    else
+    {
+        //qCDebug(NTRIPLog) << "VRS not enabled";
+    }
+
+    // Socket code as before
+    if (_socket) {
+        _socket->blockSignals(true);
+        //qCDebug(NTRIPLog) << "Disconnect 1a";
+        QObject::disconnect(_socket, nullptr, nullptr, nullptr);
+        //qCDebug(NTRIPLog) << "Disconnect 1";
+        _socket->disconnectFromHost();
+        //qCDebug(NTRIPLog) << "Disconnect 2";
+        _socket->deleteLater();
+        //qCDebug(NTRIPLog) << "Disconnect 3";
+        _socket = nullptr;
+        //qCDebug(NTRIPLog) << "Disconnect 4";
+    }
+
     _retryCount = 0;
     _setConnectionStatus(NTRIPStatus::Off);
+    //qCDebug(NTRIPLog) << "Disconnect 5";
 }
 
 void NTRIPTCPLink::_hardwareConnect() {
