@@ -407,6 +407,23 @@ const QVariantList& FirmwarePlugin::cameraList(const Vehicle*)
                     this);                      // parent
         _cameraList.append(QVariant::fromValue(metaData));
 
+        metaData = new CameraMetaData(
+                    // Phase One P3
+                    "Phase One P3",
+                    tr("Phase One"),
+                    tr("P3"),
+                    43.90,                           // sensorWidth
+                    32.90,                           // sensorHeight
+                    11664,                           // imageWidth
+                    8750,                           // imageHeight
+                    63.0,                            // focalLength
+                    true,                           // true: landscape orientation
+                    false,                          // true: camera is fixed orientation
+                    0.7,                              // minimum trigger interval
+                    tr("Phase One P3"), // SHOULD BE BLANK FOR NEWLY ADDED CAMERAS. Deprecated translation from older builds.
+                    this);                          // parent
+        _cameraList.append(QVariant::fromValue(metaData));
+
 //        metaData = new CameraMetaData(
 //                    // Canon S100 @ 5.2mm f/2
 //                    "Canon S100 PowerShot",     // canonical name saved in plan file
