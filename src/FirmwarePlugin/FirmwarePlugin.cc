@@ -329,8 +329,8 @@ const QVariantList& FirmwarePlugin::toolIndicators(const Vehicle*)
         _toolIndicatorList = QVariantList({
             QVariant::fromValue(QUrl::fromUserInput("qrc:/toolbar/MessageIndicator.qml")),
             QVariant::fromValue(QUrl::fromUserInput("qrc:/toolbar/GPSIndicator.qml")),
-            QVariant::fromValue(QUrl::fromUserInput("qrc:/toolbar/TelemetryRSSIIndicator.qml")),
-            QVariant::fromValue(QUrl::fromUserInput("qrc:/toolbar/RCRSSIIndicator.qml")),
+            //QVariant::fromValue(QUrl::fromUserInput("qrc:/toolbar/TelemetryRSSIIndicator.qml")),
+            //QVariant::fromValue(QUrl::fromUserInput("qrc:/toolbar/RCRSSIIndicator.qml")),
             QVariant::fromValue(QUrl::fromUserInput("qrc:/toolbar/BatteryIndicator.qml")),
             QVariant::fromValue(QUrl::fromUserInput("qrc:/toolbar/RemoteIDIndicator.qml")),
             QVariant::fromValue(QUrl::fromUserInput("qrc:/toolbar/GimbalIndicator.qml")),
@@ -363,8 +363,8 @@ const QVariantList& FirmwarePlugin::cameraList(const Vehicle*)
                     tr("ILX-LR1-35mm"),       // model
                     35.81,                        // sensorWidth
                     23.88,                        // sensorHeight
-                    7360,                       // imageWidth
-                    4912,                       // imageHeight
+                    9504,                       // imageWidth
+                    6336,                       // imageHeight
                     35,                        // focalLength
                     true,                       // true: landscape orientation
                     false,                      // true: camera is fixed orientation
@@ -380,8 +380,8 @@ const QVariantList& FirmwarePlugin::cameraList(const Vehicle*)
                     tr("ILX-LR1-21mm"),       // model
                     35.81,                        // sensorWidth
                     23.88,                        // sensorHeight
-                    7360,                       // imageWidth
-                    4912,                       // imageHeight
+                    9504,                       // imageWidth
+                    6336,                       // imageHeight
                     21,                        // focalLength
                     true,                       // true: landscape orientation
                     false,                      // true: camera is fixed orientation

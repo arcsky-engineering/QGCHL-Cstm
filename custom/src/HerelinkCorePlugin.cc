@@ -66,6 +66,7 @@ bool HerelinkCorePlugin::adjustSettingMetaData(const QString& settingsGroup, Fac
         } else {
             // Disable all the other autoconnect types
             const std::list<const char *> disabledAndHiddenSettings = {
+                AutoConnectSettings::autoConnectUDPName,
                 AutoConnectSettings::autoConnectPixhawkName,
                 AutoConnectSettings::autoConnectSiKRadioName,
                 AutoConnectSettings::autoConnectPX4FlowName,
@@ -88,7 +89,7 @@ bool HerelinkCorePlugin::adjustSettingMetaData(const QString& settingsGroup, Fac
         }
     } else if (settingsGroup == AppSettings::settingsGroup) {
         if (metaData.name() == AppSettings::androidSaveToSDCardName) {
-            metaData.setRawDefaultValue(true);
+            metaData.setRawDefaultValue(false);
         }
     }
 
@@ -103,7 +104,7 @@ void HerelinkCorePlugin::_activeVehicleChanged(Vehicle* activeVehicle)
         auto joystickManager = qgcApp()->toolbox()->joystickManager();
         if (joystickManager->activeJoystickName() != herelinkButtonsJoystickName) {
             if (!joystickManager->setActiveJoystickName(herelinkButtonsJoystickName)) {
-                qgcApp()->showAppMessage("Warning: Herelink buttton setup failed. Buttons will not work.");
+                //qgcApp()->showAppMessage("Warning: Herelink buttton setup failed. Buttons will not work.");
                 return;
             }           
         }
