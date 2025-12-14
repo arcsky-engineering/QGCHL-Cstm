@@ -66,7 +66,6 @@ bool HerelinkCorePlugin::adjustSettingMetaData(const QString& settingsGroup, Fac
         } else {
             // Disable all the other autoconnect types
             const std::list<const char *> disabledAndHiddenSettings = {
-                AutoConnectSettings::autoConnectUDPName,
                 AutoConnectSettings::autoConnectPixhawkName,
                 AutoConnectSettings::autoConnectSiKRadioName,
                 AutoConnectSettings::autoConnectPX4FlowName,
