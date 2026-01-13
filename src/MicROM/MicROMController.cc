@@ -234,6 +234,17 @@ void MicROMController::_parseResponse(const QByteArray& data)
         return;
     }
 
+    // Video error response - MUST check before CI_KRV since CI_KRVERR starts with CI_KRV
+    if (response.startsWith("CI_KRVERR") || (response.contains("KRV") && response.contains("ERR"))) {
+        qDebug() << "MicROMController: Video error received:" << response;
+        _setLastError("Video recording error - check SD card");
+        _setRecording(false);
+        _pendingVideoStart = false;
+        _pendingVideoStop = false;
+        emit videoError();
+        return;
+    }
+
     // Parse video recording status response: CI_KRV (recording) or CI_KRV0/CI_KRV1
     // Based on the protocol, V = video, and the response tells us the state
     if (response.startsWith("CI_KRV")) {
@@ -264,16 +275,6 @@ void MicROMController::_parseResponse(const QByteArray& data)
             _setRecording(!_recording);
             qDebug() << "MicROMController: Video recording toggled to" << _recording;
         }
-        return;
-    }
-
-    // Video error response
-    if (response.contains("KRVERR") || (response.contains("KRV") && response.contains("ERR"))) {
-        _setLastError("Video recording error - check SD card");
-        _setRecording(false);
-        _pendingVideoStart = false;
-        _pendingVideoStop = false;
-        emit videoError();
         return;
     }
 
