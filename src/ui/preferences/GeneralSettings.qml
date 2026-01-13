@@ -182,6 +182,14 @@ Rectangle {
                             }
 
                             FactCheckBox {
+                                text:       qsTr("Show MicROM UV Camera indicator")
+                                visible:    _showMicROMIndicator.visible
+                                fact:       _showMicROMIndicator
+
+                                property Fact _showMicROMIndicator: QGroundControl.settingsManager.appSettings.showMicROMIndicator
+                            }
+
+                            FactCheckBox {
                                 text:       qsTr("Update home position based on device location. This will affect return to home")
                                 fact:       _updateHomePosition
                                 visible:    _updateHomePosition.visible

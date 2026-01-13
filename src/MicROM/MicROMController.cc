@@ -237,8 +237,24 @@ void MicROMController::_parseResponse(const QByteArray& data)
     // Video error response - MUST check before CI_KRV since CI_KRVERR starts with CI_KRV
     if (response.startsWith("CI_KRVERR") || (response.contains("KRV") && response.contains("ERR"))) {
         qDebug() << "MicROMController: Video error received:" << response;
-        _setLastError("Video recording error - check SD card");
-        _setRecording(false);
+
+        // Determine what failed based on pending flags
+        if (_pendingVideoStart) {
+            // Failed to start - recording stays false
+            _setLastError("Failed to start video recording - check SD card");
+            _setRecording(false);
+            qDebug() << "MicROMController: Failed to start recording";
+        } else if (_pendingVideoStop) {
+            // Failed to stop - recording stays true (camera is still recording!)
+            _setLastError("Failed to stop video recording");
+            _setRecording(true);
+            qDebug() << "MicROMController: Failed to stop recording - camera still recording";
+        } else {
+            // Unknown context - default to false and show generic error
+            _setLastError("Video recording error - check SD card");
+            qDebug() << "MicROMController: Video error with no pending context";
+        }
+
         _pendingVideoStart = false;
         _pendingVideoStop = false;
         emit videoError();
@@ -246,22 +262,37 @@ void MicROMController::_parseResponse(const QByteArray& data)
     }
 
     // Parse video recording status response: CI_KRV (recording) or CI_KRV0/CI_KRV1
-    // Based on the protocol, V = video, and the response tells us the state
+    // This is the camera's response to IC_KSV command
     if (response.startsWith("CI_KRV")) {
-        // CI_KRV with no suffix or CI_KRV1 = recording, CI_KRV0 = not recording
         QString suffix = response.mid(6);
-        if (suffix.isEmpty() || suffix == "1" || suffix.startsWith("1")) {
+
+        // If we have pending flags, use them to determine state (most reliable)
+        if (_pendingVideoStart) {
             _setRecording(true);
-        } else if (suffix == "0" || suffix.startsWith("0")) {
+            _pendingVideoStart = false;
+            qDebug() << "MicROMController: Video recording started (pending flag)";
+        } else if (_pendingVideoStop) {
             _setRecording(false);
+            _pendingVideoStop = false;
+            qDebug() << "MicROMController: Video recording stopped (pending flag)";
+        } else if (suffix == "1" || suffix.startsWith("1")) {
+            // Explicit "recording" indicator from camera
+            _setRecording(true);
+            qDebug() << "MicROMController: Video recording status from camera: recording";
+        } else if (suffix == "0" || suffix.startsWith("0")) {
+            // Explicit "not recording" indicator from camera
+            _setRecording(false);
+            qDebug() << "MicROMController: Video recording status from camera: stopped";
+        } else {
+            // Bare CI_KRV with no suffix and no pending flag - log but don't change state
+            qDebug() << "MicROMController: CI_KRV received with no context, current state:" << _recording;
         }
-        qDebug() << "MicROMController: Video recording status:" << _recording;
         return;
     }
 
-    // Video command acknowledged - use pending flags to determine new state
+    // Video command acknowledged (CI_KSV) - also use pending flags
     if (response.startsWith("CI_KSV")) {
-        qDebug() << "MicROMController: Video command acknowledged";
+        qDebug() << "MicROMController: Video command acknowledged (CI_KSV)";
         if (_pendingVideoStart) {
             _setRecording(true);
             _pendingVideoStart = false;
@@ -270,10 +301,6 @@ void MicROMController::_parseResponse(const QByteArray& data)
             _setRecording(false);
             _pendingVideoStop = false;
             qDebug() << "MicROMController: Video recording stopped";
-        } else {
-            // Toggle if no pending state (shouldn't happen normally)
-            _setRecording(!_recording);
-            qDebug() << "MicROMController: Video recording toggled to" << _recording;
         }
         return;
     }

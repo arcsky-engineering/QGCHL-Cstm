@@ -23,7 +23,7 @@ Item {
     anchors.top:    parent.top
     anchors.bottom: parent.bottom
 
-    property bool   showIndicator:      true
+    property bool   showIndicator:      QGroundControl.settingsManager.appSettings.showMicROMIndicator.rawValue
     property var    _micromController:  QGroundControl.micromController
     property var    margins:            ScreenTools.defaultFontPixelWidth
     property var    panelRadius:        ScreenTools.defaultFontPixelWidth * 0.5
