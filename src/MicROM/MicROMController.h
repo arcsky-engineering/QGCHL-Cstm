@@ -66,7 +66,6 @@ signals:
 private slots:
     void _readPendingDatagrams();
     void _sendKeepalive();
-    void _queryRecordingStatus();
 
 private:
     void _sendCommand(const QString& command);
@@ -77,7 +76,6 @@ private:
     QUdpSocket* _sendSocket          = nullptr;
     QUdpSocket* _recvSocket          = nullptr;
     QTimer*     _keepaliveTimer      = nullptr;
-    QTimer*     _statusQueryTimer    = nullptr;
 
     QString     _cameraIP            = "192.168.144.2";
     quint16     _sendPort            = 4526;
@@ -85,13 +83,14 @@ private:
 
     bool        _connected           = false;
     bool        _recording           = false;
-    bool        _sdCardPresent       = false;
+    bool        _sdCardPresent       = true;   // Assume present until we know otherwise
     int         _zoom                = 0;
-    int         _gain                = 130;     // Default gain per OFIL docs
+    int         _gain                = 130;    // Default gain per OFIL docs
     int         _keepaliveMisses     = 0;
+    bool        _pendingVideoStart   = false;  // Track if we're waiting for video start confirmation
+    bool        _pendingVideoStop    = false;  // Track if we're waiting for video stop confirmation
     QString     _lastError;
 
     static const int KEEPALIVE_INTERVAL_MS   = 5000;
-    static const int STATUS_QUERY_INTERVAL_MS = 2000;
     static const int MAX_KEEPALIVE_MISSES    = 3;
 };

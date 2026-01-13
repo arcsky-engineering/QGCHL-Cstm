@@ -30,11 +30,6 @@ MicROMController::MicROMController(QObject* parent)
     connect(_keepaliveTimer, &QTimer::timeout, this, &MicROMController::_sendKeepalive);
     _keepaliveTimer->start(KEEPALIVE_INTERVAL_MS);
 
-    // Setup status query timer - periodically query recording status
-    _statusQueryTimer = new QTimer(this);
-    connect(_statusQueryTimer, &QTimer::timeout, this, &MicROMController::_queryRecordingStatus);
-    _statusQueryTimer->start(STATUS_QUERY_INTERVAL_MS);
-
     // Initial connection attempt
     _sendKeepalive();
 }
@@ -43,9 +38,6 @@ MicROMController::~MicROMController()
 {
     if (_keepaliveTimer) {
         _keepaliveTimer->stop();
-    }
-    if (_statusQueryTimer) {
-        _statusQueryTimer->stop();
     }
 }
 
@@ -73,6 +65,8 @@ void MicROMController::startVideo()
 {
     qDebug() << "MicROMController: Starting video recording";
     _setLastError("");
+    _pendingVideoStart = true;
+    _pendingVideoStop = false;
     _sendCommand("IC_KSV");
 }
 
@@ -80,6 +74,8 @@ void MicROMController::stopVideo()
 {
     qDebug() << "MicROMController: Stopping video recording";
     _setLastError("");
+    _pendingVideoStop = true;
+    _pendingVideoStart = false;
     // Send the same command to toggle off
     _sendCommand("IC_KSV");
 }
@@ -108,19 +104,11 @@ void MicROMController::setGain(int value)
 
 void MicROMController::queryStatus()
 {
-    // Query current zoom, gain, SD card presence, and video status
+    // Query current zoom, gain, and SD card presence
+    // Note: IC_KQV (video status query) is not implemented by camera firmware
     _sendCommand("IC_MZQ");
     _sendCommand("IC_GAQ");
     _sendCommand("IC_SDPQ");  // Query SD card presence
-    _sendCommand("IC_KQV");   // Query video recording status (K command with Q suffix)
-}
-
-void MicROMController::_queryRecordingStatus()
-{
-    if (_connected) {
-        // Periodically query video status to keep our state in sync
-        _sendCommand("IC_KQV");
-    }
 }
 
 void MicROMController::_sendCommand(const QString& command)
@@ -260,11 +248,22 @@ void MicROMController::_parseResponse(const QByteArray& data)
         return;
     }
 
-    // Video command acknowledged (start recording)
+    // Video command acknowledged - use pending flags to determine new state
     if (response.startsWith("CI_KSV")) {
         qDebug() << "MicROMController: Video command acknowledged";
-        // Query status to confirm the actual state
-        _sendCommand("IC_KQV");
+        if (_pendingVideoStart) {
+            _setRecording(true);
+            _pendingVideoStart = false;
+            qDebug() << "MicROMController: Video recording started";
+        } else if (_pendingVideoStop) {
+            _setRecording(false);
+            _pendingVideoStop = false;
+            qDebug() << "MicROMController: Video recording stopped";
+        } else {
+            // Toggle if no pending state (shouldn't happen normally)
+            _setRecording(!_recording);
+            qDebug() << "MicROMController: Video recording toggled to" << _recording;
+        }
         return;
     }
 
@@ -272,6 +271,8 @@ void MicROMController::_parseResponse(const QByteArray& data)
     if (response.contains("KRVERR") || (response.contains("KRV") && response.contains("ERR"))) {
         _setLastError("Video recording error - check SD card");
         _setRecording(false);
+        _pendingVideoStart = false;
+        _pendingVideoStop = false;
         emit videoError();
         return;
     }
@@ -309,8 +310,8 @@ void MicROMController::_parseResponse(const QByteArray& data)
         return;
     }
 
-    // Handle generic error responses
-    if (response.contains("ERR")) {
+    // Handle generic error responses (but ignore "Not implemented" as it's not actionable)
+    if (response.contains("ERR") && !response.contains("Not implemented")) {
         _setLastError(QString("Camera error: %1").arg(response));
         return;
     }
