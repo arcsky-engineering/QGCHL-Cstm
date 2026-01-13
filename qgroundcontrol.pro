@@ -653,6 +653,7 @@ HEADERS += \
     src/Geo/TransverseMercator.hpp \
     src/Geo/PolarStereographic.hpp \
     src/Gimbal/GimbalController.h \
+    src/MicROM/MicROMController.h \
     src/QGC.h \
     src/QGCApplication.h \
     src/QGCCachedFileDownload.h \
@@ -917,6 +918,7 @@ SOURCES += \
     src/Geo/TransverseMercator.cpp \
     src/Geo/PolarStereographic.cpp \
     src/Gimbal/GimbalController.cc \
+    src/MicROM/MicROMController.cc \
     src/QGC.cc \
     src/QGCApplication.cc \
     src/QGCCachedFileDownload.cc \

@@ -18,6 +18,7 @@
 #include "ADSBVehicleManager.h"
 #include "QGCPalette.h"
 #include "QmlUnitsConversion.h"
+#include "MicROMController.h"
 #if defined(QGC_ENABLE_PAIRING)
 #include "PairingManager.h"
 #endif
@@ -74,6 +75,7 @@ public:
     Q_PROPERTY(bool                 taisyncSupported        READ    taisyncSupported        CONSTANT)
     Q_PROPERTY(MicrohardManager*    microhardManager        READ    microhardManager        CONSTANT)
     Q_PROPERTY(bool                 microhardSupported      READ    microhardSupported      CONSTANT)
+    Q_PROPERTY(MicROMController*    micromController        READ    micromController        CONSTANT)
     Q_PROPERTY(bool                 supportsPairing         READ    supportsPairing         CONSTANT)
     Q_PROPERTY(QGCPalette*          globalPalette           MEMBER  _globalPalette          CONSTANT)   ///< This palette will always return enabled colors
     Q_PROPERTY(QmlUnitsConversion*  unitsConversion         READ    unitsConversion         CONSTANT)
@@ -189,6 +191,8 @@ public:
     bool                    microhardSupported  () { return false; }
 #endif
 
+    MicROMController*       micromController    () { return _micromController; }
+
     qreal zOrderTopMost             () { return 1000; }
     qreal zOrderWidgets             () { return 100; }
     qreal zOrderMapItems            () { return 50; }
@@ -258,6 +262,7 @@ private:
     FactGroup*              _gpsRtkFactGroup        = nullptr;
     TaisyncManager*         _taisyncManager         = nullptr;
     MicrohardManager*       _microhardManager       = nullptr;
+    MicROMController*       _micromController       = nullptr;
     ADSBVehicleManager*     _adsbVehicleManager     = nullptr;
     NTRIP*                  _ntrip                  = nullptr;    
     QGCPalette*             _globalPalette          = nullptr;

@@ -89,6 +89,9 @@ void QGroundControlQmlGlobal::setToolbox(QGCToolbox* toolbox)
 #if defined(QGC_GST_MICROHARD_ENABLED)
     _microhardManager       = toolbox->microhardManager();
 #endif
+
+    // Create MicROM controller for OFIL UV camera payload
+    _micromController       = new MicROMController(this);
 }
 
 void QGroundControlQmlGlobal::saveGlobalSetting (const QString& key, const QString& value)

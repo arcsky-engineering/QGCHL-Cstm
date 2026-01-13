@@ -11,6 +11,7 @@ add_custom_target(UiToolbarQml
 		MainToolBarIndicators.qml
 		MainToolBar.qml
 		MessageIndicator.qml
+		MicROMIndicator.qml
 		ModeIndicator.qml
 		MultiVehicleSelector.qml
 		RCRSSIIndicator.qml
