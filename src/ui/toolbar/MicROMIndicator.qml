@@ -27,6 +27,7 @@ Item {
     property var    _micromController:  QGroundControl.micromController
     property var    margins:            ScreenTools.defaultFontPixelWidth
     property var    panelRadius:        ScreenTools.defaultFontPixelWidth * 0.5
+    property real   _sliderWidth:       ScreenTools.defaultFontPixelWidth * 30  // 2x larger sliders
 
     // Popup control panel
     Component {
@@ -40,10 +41,10 @@ Item {
 
             ColumnLayout {
                 id:                 mainLayout
-                anchors.margins:    ScreenTools.defaultFontPixelWidth
+                anchors.margins:    ScreenTools.defaultFontPixelWidth * 1.5
                 anchors.top:        parent.top
                 anchors.left:       parent.left
-                spacing:            ScreenTools.defaultFontPixelHeight * 0.5
+                spacing:            ScreenTools.defaultFontPixelHeight * 0.75
 
                 // Title
                 QGCLabel {
@@ -53,22 +54,54 @@ Item {
                     Layout.alignment:   Qt.AlignHCenter
                 }
 
-                // Connection status
+                // Connection and SD card status
                 Row {
-                    spacing: ScreenTools.defaultFontPixelWidth * 0.5
+                    spacing: ScreenTools.defaultFontPixelWidth * 1.5
                     Layout.alignment: Qt.AlignHCenter
 
-                    Rectangle {
-                        width:  ScreenTools.defaultFontPixelHeight * 0.8
-                        height: width
-                        radius: width / 2
-                        color:  _micromController && _micromController.connected ? "green" : "red"
-                        anchors.verticalCenter: parent.verticalCenter
+                    // Connection status
+                    Row {
+                        spacing: ScreenTools.defaultFontPixelWidth * 0.5
+
+                        Rectangle {
+                            width:  ScreenTools.defaultFontPixelHeight * 0.8
+                            height: width
+                            radius: width / 2
+                            color:  _micromController && _micromController.connected ? "green" : "red"
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        QGCLabel {
+                            text: _micromController && _micromController.connected ? qsTr("Connected") : qsTr("Disconnected")
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
                     }
-                    QGCLabel {
-                        text: _micromController && _micromController.connected ? qsTr("Connected") : qsTr("Disconnected")
-                        anchors.verticalCenter: parent.verticalCenter
+
+                    // SD Card status
+                    Row {
+                        spacing: ScreenTools.defaultFontPixelWidth * 0.5
+                        visible: _micromController && _micromController.connected
+
+                        Rectangle {
+                            width:  ScreenTools.defaultFontPixelHeight * 0.8
+                            height: width
+                            radius: width / 2
+                            color:  _micromController && _micromController.sdCardPresent ? "green" : "orange"
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        QGCLabel {
+                            text: _micromController && _micromController.sdCardPresent ? qsTr("SD Card OK") : qsTr("No SD Card")
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
                     }
+                }
+
+                // Error message display
+                QGCLabel {
+                    text:               _micromController ? _micromController.lastError : ""
+                    color:              "red"
+                    font.pointSize:     ScreenTools.smallFontPointSize
+                    Layout.alignment:   Qt.AlignHCenter
+                    visible:            _micromController && _micromController.lastError !== ""
                 }
 
                 // Separator
@@ -80,12 +113,14 @@ Item {
 
                 // Photo/Video buttons
                 RowLayout {
-                    spacing:            ScreenTools.defaultFontPixelWidth
+                    spacing:            ScreenTools.defaultFontPixelWidth * 2
                     Layout.alignment:   Qt.AlignHCenter
 
                     QGCButton {
-                        text:               qsTr("Photo")
-                        Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 10
+                        text:               qsTr("Take Photo")
+                        Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 14
+                        Layout.preferredHeight: ScreenTools.defaultFontPixelHeight * 2.5
+                        enabled:            _micromController && _micromController.connected
                         onClicked: {
                             if (_micromController) {
                                 _micromController.takePhoto()
@@ -94,12 +129,37 @@ Item {
                     }
 
                     QGCButton {
-                        text:               _micromController && _micromController.recording ? qsTr("Stop Video") : qsTr("Record Video")
-                        Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 12
+                        text:               _micromController && _micromController.recording ? qsTr("Stop Recording") : qsTr("Start Recording")
+                        Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 16
+                        Layout.preferredHeight: ScreenTools.defaultFontPixelHeight * 2.5
                         highlighted:        _micromController && _micromController.recording
+                        enabled:            _micromController && _micromController.connected
                         onClicked: {
                             if (_micromController) {
-                                _micromController.toggleVideo()
+                                if (_micromController.recording) {
+                                    _micromController.stopVideo()
+                                } else {
+                                    _micromController.startVideo()
+                                }
+                            }
+                        }
+
+                        // Recording indicator
+                        Rectangle {
+                            visible:        _micromController && _micromController.recording
+                            width:          ScreenTools.defaultFontPixelHeight * 0.6
+                            height:         width
+                            radius:         width / 2
+                            color:          "red"
+                            anchors.left:   parent.left
+                            anchors.leftMargin: ScreenTools.defaultFontPixelWidth
+                            anchors.verticalCenter: parent.verticalCenter
+
+                            SequentialAnimation on opacity {
+                                running:    _micromController && _micromController.recording
+                                loops:      Animation.Infinite
+                                NumberAnimation { to: 0.3; duration: 500 }
+                                NumberAnimation { to: 1.0; duration: 500 }
                             }
                         }
                     }
@@ -113,13 +173,24 @@ Item {
                 }
 
                 // Zoom control
-                RowLayout {
-                    spacing: ScreenTools.defaultFontPixelWidth
+                ColumnLayout {
+                    spacing: ScreenTools.defaultFontPixelHeight * 0.25
                     Layout.fillWidth: true
 
-                    QGCLabel {
-                        text:                   qsTr("Zoom:")
-                        Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 8
+                    RowLayout {
+                        spacing: ScreenTools.defaultFontPixelWidth
+                        Layout.fillWidth: true
+
+                        QGCLabel {
+                            text:                   qsTr("Zoom:")
+                            Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 8
+                        }
+
+                        QGCLabel {
+                            text:                   zoomSlider.value.toFixed(0) + " / 15"
+                            Layout.fillWidth:       true
+                            horizontalAlignment:    Text.AlignRight
+                        }
                     }
 
                     Slider {
@@ -128,29 +199,64 @@ Item {
                         to:                     15
                         stepSize:               1
                         value:                  _micromController ? _micromController.zoom : 0
-                        Layout.fillWidth:       true
+                        Layout.preferredWidth:  _sliderWidth
+                        Layout.preferredHeight: ScreenTools.defaultFontPixelHeight * 2
+                        enabled:                _micromController && _micromController.connected
+
+                        background: Rectangle {
+                            x:              zoomSlider.leftPadding
+                            y:              zoomSlider.topPadding + zoomSlider.availableHeight / 2 - height / 2
+                            width:          zoomSlider.availableWidth
+                            height:         ScreenTools.defaultFontPixelHeight * 0.5
+                            radius:         height / 2
+                            color:          qgcPal.windowShade
+
+                            Rectangle {
+                                width:  zoomSlider.visualPosition * parent.width
+                                height: parent.height
+                                color:  qgcPal.buttonHighlight
+                                radius: height / 2
+                            }
+                        }
+
+                        handle: Rectangle {
+                            x:              zoomSlider.leftPadding + zoomSlider.visualPosition * (zoomSlider.availableWidth - width)
+                            y:              zoomSlider.topPadding + zoomSlider.availableHeight / 2 - height / 2
+                            width:          ScreenTools.defaultFontPixelHeight * 1.5
+                            height:         width
+                            radius:         width / 2
+                            color:          zoomSlider.pressed ? qgcPal.buttonHighlight : qgcPal.button
+                            border.color:   qgcPal.buttonText
+                            border.width:   1
+                        }
+
                         onPressedChanged: {
                             if (!pressed && _micromController) {
                                 _micromController.setZoom(value)
                             }
                         }
                     }
-
-                    QGCLabel {
-                        text:                   zoomSlider.value.toFixed(0)
-                        Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 3
-                        horizontalAlignment:    Text.AlignRight
-                    }
                 }
 
                 // Gain/Sensitivity control
-                RowLayout {
-                    spacing: ScreenTools.defaultFontPixelWidth
+                ColumnLayout {
+                    spacing: ScreenTools.defaultFontPixelHeight * 0.25
                     Layout.fillWidth: true
 
-                    QGCLabel {
-                        text:                   qsTr("Gain:")
-                        Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 8
+                    RowLayout {
+                        spacing: ScreenTools.defaultFontPixelWidth
+                        Layout.fillWidth: true
+
+                        QGCLabel {
+                            text:                   qsTr("Gain (Sensitivity):")
+                            Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 16
+                        }
+
+                        QGCLabel {
+                            text:                   gainSlider.value.toFixed(0) + " / 255"
+                            Layout.fillWidth:       true
+                            horizontalAlignment:    Text.AlignRight
+                        }
                     }
 
                     Slider {
@@ -159,7 +265,37 @@ Item {
                         to:                     255
                         stepSize:               1
                         value:                  _micromController ? _micromController.gain : 130
-                        Layout.fillWidth:       true
+                        Layout.preferredWidth:  _sliderWidth
+                        Layout.preferredHeight: ScreenTools.defaultFontPixelHeight * 2
+                        enabled:                _micromController && _micromController.connected
+
+                        background: Rectangle {
+                            x:              gainSlider.leftPadding
+                            y:              gainSlider.topPadding + gainSlider.availableHeight / 2 - height / 2
+                            width:          gainSlider.availableWidth
+                            height:         ScreenTools.defaultFontPixelHeight * 0.5
+                            radius:         height / 2
+                            color:          qgcPal.windowShade
+
+                            Rectangle {
+                                width:  gainSlider.visualPosition * parent.width
+                                height: parent.height
+                                color:  qgcPal.buttonHighlight
+                                radius: height / 2
+                            }
+                        }
+
+                        handle: Rectangle {
+                            x:              gainSlider.leftPadding + gainSlider.visualPosition * (gainSlider.availableWidth - width)
+                            y:              gainSlider.topPadding + gainSlider.availableHeight / 2 - height / 2
+                            width:          ScreenTools.defaultFontPixelHeight * 1.5
+                            height:         width
+                            radius:         width / 2
+                            color:          gainSlider.pressed ? qgcPal.buttonHighlight : qgcPal.button
+                            border.color:   qgcPal.buttonText
+                            border.width:   1
+                        }
+
                         onPressedChanged: {
                             if (!pressed && _micromController) {
                                 _micromController.setGain(value)
@@ -168,18 +304,11 @@ Item {
                     }
 
                     QGCLabel {
-                        text:                   gainSlider.value.toFixed(0)
-                        Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 4
-                        horizontalAlignment:    Text.AlignRight
+                        text:               qsTr("Higher gain = more UV sensitivity")
+                        font.pointSize:     ScreenTools.smallFontPointSize
+                        Layout.alignment:   Qt.AlignHCenter
+                        opacity:            0.7
                     }
-                }
-
-                // Info text
-                QGCLabel {
-                    text:               qsTr("Higher gain = more UV sensitivity")
-                    font.pointSize:     ScreenTools.smallFontPointSize
-                    Layout.alignment:   Qt.AlignHCenter
-                    opacity:            0.7
                 }
             }
         }
@@ -231,10 +360,11 @@ Item {
 
         QGCLabel {
             text:           _micromController && _micromController.connected ?
-                                qsTr("Z:%1 G:%2").arg(_micromController.zoom).arg(_micromController.gain) :
+                                (_micromController.recording ? qsTr("REC") : qsTr("Z:%1 G:%2").arg(_micromController.zoom).arg(_micromController.gain)) :
                                 qsTr("--")
             font.pointSize: ScreenTools.smallFontPointSize
-            opacity:        0.8
+            color:          _micromController && _micromController.recording ? "red" : qgcPal.buttonText
+            opacity:        _micromController && _micromController.recording ? 1.0 : 0.8
         }
     }
 

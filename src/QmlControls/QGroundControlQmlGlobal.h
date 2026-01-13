@@ -18,7 +18,7 @@
 #include "ADSBVehicleManager.h"
 #include "QGCPalette.h"
 #include "QmlUnitsConversion.h"
-#include "MicROMController.h"
+#include "MicROM/MicROMController.h"
 #if defined(QGC_ENABLE_PAIRING)
 #include "PairingManager.h"
 #endif

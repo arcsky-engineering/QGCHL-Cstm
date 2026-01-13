@@ -30,6 +30,11 @@ MicROMController::MicROMController(QObject* parent)
     connect(_keepaliveTimer, &QTimer::timeout, this, &MicROMController::_sendKeepalive);
     _keepaliveTimer->start(KEEPALIVE_INTERVAL_MS);
 
+    // Setup status query timer - periodically query recording status
+    _statusQueryTimer = new QTimer(this);
+    connect(_statusQueryTimer, &QTimer::timeout, this, &MicROMController::_queryRecordingStatus);
+    _statusQueryTimer->start(STATUS_QUERY_INTERVAL_MS);
+
     // Initial connection attempt
     _sendKeepalive();
 }
@@ -38,6 +43,9 @@ MicROMController::~MicROMController()
 {
     if (_keepaliveTimer) {
         _keepaliveTimer->stop();
+    }
+    if (_statusQueryTimer) {
+        _statusQueryTimer->stop();
     }
 }
 
@@ -57,17 +65,23 @@ void MicROMController::setCameraIP(const QString& ip)
 void MicROMController::takePhoto()
 {
     qDebug() << "MicROMController: Taking photo";
+    _setLastError("");
     _sendCommand("IC_KSP");
 }
 
-void MicROMController::toggleVideo()
+void MicROMController::startVideo()
 {
-    qDebug() << "MicROMController: Toggling video recording";
+    qDebug() << "MicROMController: Starting video recording";
+    _setLastError("");
     _sendCommand("IC_KSV");
-    // Toggle local state immediately for responsive UI
-    // Will be corrected by response if needed
-    _recording = !_recording;
-    emit recordingChanged();
+}
+
+void MicROMController::stopVideo()
+{
+    qDebug() << "MicROMController: Stopping video recording";
+    _setLastError("");
+    // Send the same command to toggle off
+    _sendCommand("IC_KSV");
 }
 
 void MicROMController::setZoom(int value)
@@ -94,9 +108,19 @@ void MicROMController::setGain(int value)
 
 void MicROMController::queryStatus()
 {
-    // Query current zoom and gain values
+    // Query current zoom, gain, SD card presence, and video status
     _sendCommand("IC_MZQ");
     _sendCommand("IC_GAQ");
+    _sendCommand("IC_SDPQ");  // Query SD card presence
+    _sendCommand("IC_KQV");   // Query video recording status (K command with Q suffix)
+}
+
+void MicROMController::_queryRecordingStatus()
+{
+    if (_connected) {
+        // Periodically query video status to keep our state in sync
+        _sendCommand("IC_KQV");
+    }
 }
 
 void MicROMController::_sendCommand(const QString& command)
@@ -140,6 +164,26 @@ void MicROMController::_readPendingDatagrams()
     }
 }
 
+void MicROMController::_setRecording(bool recording)
+{
+    if (_recording != recording) {
+        _recording = recording;
+        emit recordingChanged();
+        qDebug() << "MicROMController: Recording state changed to" << _recording;
+    }
+}
+
+void MicROMController::_setLastError(const QString& error)
+{
+    if (_lastError != error) {
+        _lastError = error;
+        emit lastErrorChanged();
+        if (!error.isEmpty()) {
+            qWarning() << "MicROMController: Error:" << error;
+        }
+    }
+}
+
 void MicROMController::_parseResponse(const QByteArray& data)
 {
     QString response = QString::fromLatin1(data).trimmed();
@@ -157,13 +201,21 @@ void MicROMController::_parseResponse(const QByteArray& data)
         return;
     }
 
+    // Check for keepalive request from camera (we should respond)
+    if (response.startsWith("CI_ALVS")) {
+        _sendCommand("IC_ALVR");
+        return;
+    }
+
     // Parse gain response: CI_GAR<value> or CI_GAS<value>
     if (response.startsWith("CI_GAR") || response.startsWith("CI_GAS")) {
         bool ok;
         int value = response.mid(6).toInt(&ok);
         if (ok && value >= 0 && value <= 255) {
-            _gain = value;
-            emit gainChanged();
+            if (_gain != value) {
+                _gain = value;
+                emit gainChanged();
+            }
             qDebug() << "MicROMController: Gain is" << _gain;
         }
         return;
@@ -174,25 +226,97 @@ void MicROMController::_parseResponse(const QByteArray& data)
         bool ok;
         int value = response.mid(6).toInt(&ok);
         if (ok && value >= 0 && value <= 15) {
-            _zoom = value;
-            emit zoomChanged();
+            if (_zoom != value) {
+                _zoom = value;
+                emit zoomChanged();
+            }
             qDebug() << "MicROMController: Zoom is" << _zoom;
         }
         return;
     }
 
-    // Parse video/photo responses
+    // Parse SD card presence: CI_SDPR<0|1>
+    if (response.startsWith("CI_SDPR") || response.startsWith("CI_SDPS")) {
+        bool present = response.mid(7).startsWith("1");
+        if (_sdCardPresent != present) {
+            _sdCardPresent = present;
+            emit sdCardPresentChanged();
+        }
+        qDebug() << "MicROMController: SD card present:" << _sdCardPresent;
+        return;
+    }
+
+    // Parse video recording status response: CI_KRV (recording) or CI_KRV0/CI_KRV1
+    // Based on the protocol, V = video, and the response tells us the state
+    if (response.startsWith("CI_KRV")) {
+        // CI_KRV with no suffix or CI_KRV1 = recording, CI_KRV0 = not recording
+        QString suffix = response.mid(6);
+        if (suffix.isEmpty() || suffix == "1" || suffix.startsWith("1")) {
+            _setRecording(true);
+        } else if (suffix == "0" || suffix.startsWith("0")) {
+            _setRecording(false);
+        }
+        qDebug() << "MicROMController: Video recording status:" << _recording;
+        return;
+    }
+
+    // Video command acknowledged (start recording)
     if (response.startsWith("CI_KSV")) {
-        // Video state confirmed
         qDebug() << "MicROMController: Video command acknowledged";
+        // Query status to confirm the actual state
+        _sendCommand("IC_KQV");
         return;
     }
 
-    if (response.startsWith("CI_KSP")) {
-        // Photo confirmed
+    // Video error response
+    if (response.contains("KRVERR") || response.contains("KRV") && response.contains("ERR")) {
+        _setLastError("Video recording error - check SD card");
+        _setRecording(false);
+        emit videoError();
+        return;
+    }
+
+    // Photo command acknowledged
+    if (response.startsWith("CI_KSP") || response.startsWith("CI_KRP")) {
         qDebug() << "MicROMController: Photo command acknowledged";
+        emit photoTaken();
         return;
     }
 
-    qDebug() << "MicROMController: Unknown response:" << response;
+    // Photo error response
+    if (response.contains("KSPERR") || response.contains("KSP") && response.contains("ERR")) {
+        _setLastError("Photo capture error - check SD card");
+        emit photoError();
+        return;
+    }
+
+    // SD card space query response: CI_QMSDS<value> or CI_QMSD<value>
+    if (response.startsWith("CI_QMSD")) {
+        // This is SD card used space info - we can parse it but mainly just acknowledge it
+        qDebug() << "MicROMController: SD card space info:" << response.mid(7);
+        return;
+    }
+
+    // Video status query response: CI_KQV or similar
+    if (response.startsWith("CI_KQV") || response.startsWith("CI_KQ")) {
+        QString suffix = response.mid(6);
+        // Try to determine recording state from response
+        if (suffix.contains("V") || suffix == "1") {
+            _setRecording(true);
+        } else if (suffix == "0" || suffix.isEmpty()) {
+            _setRecording(false);
+        }
+        return;
+    }
+
+    // Handle generic error responses
+    if (response.contains("ERR")) {
+        _setLastError(QString("Camera error: %1").arg(response));
+        return;
+    }
+
+    // Log unknown responses but don't spam for known periodic messages
+    if (!response.isEmpty()) {
+        qDebug() << "MicROMController: Unhandled response:" << response;
+    }
 }
