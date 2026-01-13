@@ -269,7 +269,7 @@ void MicROMController::_parseResponse(const QByteArray& data)
     }
 
     // Video error response
-    if (response.contains("KRVERR") || response.contains("KRV") && response.contains("ERR")) {
+    if (response.contains("KRVERR") || (response.contains("KRV") && response.contains("ERR"))) {
         _setLastError("Video recording error - check SD card");
         _setRecording(false);
         emit videoError();
@@ -284,7 +284,7 @@ void MicROMController::_parseResponse(const QByteArray& data)
     }
 
     // Photo error response
-    if (response.contains("KSPERR") || response.contains("KSP") && response.contains("ERR")) {
+    if (response.contains("KSPERR") || (response.contains("KSP") && response.contains("ERR"))) {
         _setLastError("Photo capture error - check SD card");
         emit photoError();
         return;
