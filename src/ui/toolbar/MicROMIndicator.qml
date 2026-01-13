@@ -187,7 +187,7 @@ Item {
                         }
 
                         QGCLabel {
-                            text:                   zoomSlider.value.toFixed(0) + " / 15"
+                            text:                   zoomSlider.value.toFixed(0) + " / 13"
                             Layout.fillWidth:       true
                             horizontalAlignment:    Text.AlignRight
                         }
@@ -196,7 +196,7 @@ Item {
                     Slider {
                         id:                     zoomSlider
                         from:                   0
-                        to:                     15
+                        to:                     13
                         stepSize:               1
                         value:                  _micromController ? _micromController.zoom : 0
                         Layout.preferredWidth:  _sliderWidth

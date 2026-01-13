@@ -83,7 +83,7 @@ void MicROMController::stopVideo()
 void MicROMController::setZoom(int value)
 {
     if (value < 0) value = 0;
-    if (value > 15) value = 15;
+    if (value > 13) value = 13;  // Max zoom is 13 (14-15 don't work on camera)
 
     qDebug() << "MicROMController: Setting zoom to" << value;
     _sendCommand(QString("IC_MZS%1").arg(value));
@@ -213,7 +213,7 @@ void MicROMController::_parseResponse(const QByteArray& data)
     if (response.startsWith("CI_MZR") || response.startsWith("CI_MZS")) {
         bool ok;
         int value = response.mid(6).toInt(&ok);
-        if (ok && value >= 0 && value <= 15) {
+        if (ok && value >= 0 && value <= 13) {  // Max zoom is 13
             if (_zoom != value) {
                 _zoom = value;
                 emit zoomChanged();
