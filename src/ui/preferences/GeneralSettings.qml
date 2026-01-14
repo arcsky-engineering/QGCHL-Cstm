@@ -182,6 +182,14 @@ Rectangle {
                             }
 
                             FactCheckBox {
+                                text:       qsTr("Show photo/video control on fly view")
+                                visible:    _showPhotoVideoControl.visible
+                                fact:       _showPhotoVideoControl
+
+                                property Fact _showPhotoVideoControl: QGroundControl.settingsManager.flyViewSettings.showPhotoVideoControl
+                            }
+
+                            FactCheckBox {
                                 text:       qsTr("Show MicROM UV Camera indicator")
                                 visible:    _showMicROMIndicator.visible
                                 fact:       _showMicROMIndicator

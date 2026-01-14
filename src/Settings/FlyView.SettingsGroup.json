@@ -55,6 +55,13 @@
     "default":      true
 },
 {
+    "name":         "showPhotoVideoControl",
+    "shortDesc":    "Show photo/video control widget on fly view.",
+    "longDesc":     "If disabled, the photo/video control widget in the bottom right of the fly view will be hidden.",
+    "type":         "bool",
+    "default":      true
+},
+{
     "name":         "showObstacleDistanceOverlay",
     "shortDesc":    "Show obstacle distance overlay on map and video.",
     "type":         "bool",
