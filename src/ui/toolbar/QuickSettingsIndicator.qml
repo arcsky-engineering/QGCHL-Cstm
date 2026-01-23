@@ -27,32 +27,17 @@ Item {
 
     property bool showIndicator: _activeVehicle ? true : false
 
-    property var    _activeVehicle:     QGroundControl.multiVehicleManager.activeVehicle
+    property var  _activeVehicle:   QGroundControl.multiVehicleManager.activeVehicle
+    property var  _parameterManager: _activeVehicle ? _activeVehicle.parameterManager : null
+    property bool _parametersReady:  _parameterManager ? _parameterManager.parametersReady : false
 
-    FactPanelController { id: controller }
+    // Get the actual Fact objects from the vehicle
+    property Fact _wpnavSpeedFact:  _parametersReady ? _parameterManager.getParameter(-1, "WPNAV_SPEED") : null
+    property Fact _rtlAltFact:      _parametersReady ? _parameterManager.getParameter(-1, "RTL_ALT") : null
 
-    property Fact _wpnavSpeedFact
-    property Fact _rtlAltFact
-
-    Connections {
-        target: QGroundControl.multiVehicleManager
-        onActiveVehicleChanged: {
-            if (QGroundControl.multiVehicleManager.activeVehicle) {
-                _wpnavSpeedFact = controller.getParameterFact(-1, "WPNAV_SPEED", false)
-                _rtlAltFact = controller.getParameterFact(-1, "RTL_ALT", false)
-            } else {
-                _wpnavSpeedFact = null
-                _rtlAltFact = null
-            }
-        }
-    }
-
-    Component.onCompleted: {
-        if (_activeVehicle) {
-            _wpnavSpeedFact = controller.getParameterFact(-1, "WPNAV_SPEED", false)
-            _rtlAltFact = controller.getParameterFact(-1, "RTL_ALT", false)
-        }
-    }
+    // Current values for display (converted from cm to m)
+    property real _wpnavSpeedValue: _wpnavSpeedFact ? _wpnavSpeedFact.rawValue / 100.0 : 0
+    property real _rtlAltValue:     _rtlAltFact ? _rtlAltFact.rawValue / 100.0 : 0
 
     Component {
         id: quickSettingsPopup
@@ -80,7 +65,7 @@ Item {
 
                 GridLayout {
                     id:                 quickSettingsGrid
-                    visible:            _activeVehicle
+                    visible:            _activeVehicle && _parametersReady
                     anchors.margins:    ScreenTools.defaultFontPixelHeight
                     columnSpacing:      ScreenTools.defaultFontPixelWidth
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -89,7 +74,7 @@ Item {
                     QGCLabel { text: qsTr("Waypoint Speed (m/s):") }
                     QGCTextField {
                         id: wpnavSpeedField
-                        text: _wpnavSpeedFact ? (_wpnavSpeedFact.value / 100).toFixed(1) : "--"
+                        text: _wpnavSpeedFact ? _wpnavSpeedValue.toFixed(1) : "--"
                         inputMethodHints: Qt.ImhFormattedNumbersOnly
                         Layout.minimumWidth: ScreenTools.defaultFontPixelWidth * 10
 
@@ -98,24 +83,15 @@ Item {
                             var value = parseFloat(text)
                             if (isNaN(value)) value = 0
                             value = Math.max(0.5, Math.min(20.0, value))
-                            _wpnavSpeedFact.value = Math.round(value * 100)
-                            wpnavSpeedField.text = value.toFixed(1)
-                        }
-
-                        Connections {
-                            target: _wpnavSpeedFact
-                            onValueChanged: {
-                                if (_wpnavSpeedFact) {
-                                    wpnavSpeedField.text = (_wpnavSpeedFact.value / 100).toFixed(1)
-                                }
-                            }
+                            _wpnavSpeedFact.rawValue = Math.round(value * 100)
+                            text = value.toFixed(1)
                         }
                     }
 
                     QGCLabel { text: qsTr("RTL Altitude (m):") }
                     QGCTextField {
                         id: rtlAltField
-                        text: _rtlAltFact ? (_rtlAltFact.value / 100).toFixed(1) : "--"
+                        text: _rtlAltFact ? _rtlAltValue.toFixed(1) : "--"
                         inputMethodHints: Qt.ImhFormattedNumbersOnly
                         Layout.minimumWidth: ScreenTools.defaultFontPixelWidth * 10
 
@@ -124,19 +100,16 @@ Item {
                             var value = parseFloat(text)
                             if (isNaN(value)) value = 0
                             value = Math.max(0, Math.min(300, value))
-                            _rtlAltFact.value = Math.round(value * 100)
-                            rtlAltField.text = value.toFixed(1)
-                        }
-
-                        Connections {
-                            target: _rtlAltFact
-                            onValueChanged: {
-                                if (_rtlAltFact) {
-                                    rtlAltField.text = (_rtlAltFact.value / 100).toFixed(1)
-                                }
-                            }
+                            _rtlAltFact.rawValue = Math.round(value * 100)
+                            text = value.toFixed(1)
                         }
                     }
+                }
+
+                QGCLabel {
+                    visible:            _activeVehicle && !_parametersReady
+                    text:               qsTr("Loading parameters...")
+                    anchors.horizontalCenter: parent.horizontalCenter
                 }
 
                 QGCLabel {
@@ -172,13 +145,13 @@ Item {
 
             QGCLabel {
                 color:  qgcPal.buttonText
-                text:   "Speed"
+                text:   _wpnavSpeedFact ? _wpnavSpeedValue.toFixed(1) + " m/s" : "Speed"
                 font.pointSize: ScreenTools.smallFontPointSize
             }
 
             QGCLabel {
                 color:  qgcPal.buttonText
-                text:   "RTL"
+                text:   _rtlAltFact ? _rtlAltValue.toFixed(0) + " m RTL" : "RTL"
                 font.pointSize: ScreenTools.smallFontPointSize
             }
         }
