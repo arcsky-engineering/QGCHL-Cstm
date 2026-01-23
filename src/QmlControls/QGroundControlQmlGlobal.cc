@@ -9,6 +9,7 @@
 
 #include "QGroundControlQmlGlobal.h"
 #include "LinkManager.h"
+#include "SettingsManager.h"
 
 #include <QSettings>
 #include <QLineF>
@@ -90,8 +91,12 @@ void QGroundControlQmlGlobal::setToolbox(QGCToolbox* toolbox)
     _microhardManager       = toolbox->microhardManager();
 #endif
 
-    // Create MicROM controller for OFIL UV camera payload
-    _micromController       = new MicROMController(this);
+    // Create MicROM controller for OFIL UV camera payload only if enabled in settings
+    if (_settingsManager->appSettings()->showMicROMIndicator()->rawValue().toBool()) {
+        _micromController = new MicROMController(this);
+    } else {
+        _micromController = nullptr;
+    }
 }
 
 void QGroundControlQmlGlobal::saveGlobalSetting (const QString& key, const QString& value)

@@ -310,6 +310,169 @@ Item {
                         opacity:            0.7
                     }
                 }
+
+                // Separator
+                Rectangle {
+                    Layout.fillWidth:       true
+                    Layout.preferredHeight: 1
+                    color:                  qgcPal.windowShade
+                }
+
+                // UV Color Palette control
+                ColumnLayout {
+                    spacing: ScreenTools.defaultFontPixelHeight * 0.25
+                    Layout.fillWidth: true
+
+                    // Color palette property to map values 0-7 to colors
+                    property var uvColors: ["#FF0000", "#FF8000", "#FFFF00", "#00FF00", "#00FFFF", "#0080FF", "#8000FF", "#FF00FF"]
+                    property var uvColorNames: ["Red", "Orange", "Yellow", "Green", "Light Blue", "Blue", "Purple", "Pink"]
+
+                    QGCLabel {
+                        text:               qsTr("UV Color Palette")
+                        font.pointSize:     ScreenTools.defaultFontPointSize
+                        font.weight:        Font.Medium
+                    }
+
+                    // Color preview boxes
+                    Row {
+                        spacing: ScreenTools.defaultFontPixelWidth * 0.3
+                        Layout.alignment: Qt.AlignHCenter
+
+                        Repeater {
+                            model: 8
+                            Rectangle {
+                                width:          ScreenTools.defaultFontPixelWidth * 3.5
+                                height:         ScreenTools.defaultFontPixelHeight * 1.2
+                                color:          parent.parent.parent.uvColors[index]
+                                opacity:        uvColorSlider.value === index ? 1.0 : 0.4
+                                border.width:   uvColorSlider.value === index ? 2 : 0
+                                border.color:   qgcPal.buttonText
+                                radius:         2
+
+                                // Checkered pattern for transparency preview
+                                Canvas {
+                                    anchors.fill: parent
+                                    visible: transparencyToggle.checked
+                                    onPaint: {
+                                        var ctx = getContext("2d")
+                                        ctx.fillStyle = "#808080"
+                                        var size = 4
+                                        for (var x = 0; x < width; x += size * 2) {
+                                            for (var y = 0; y < height; y += size * 2) {
+                                                ctx.fillRect(x, y, size, size)
+                                                ctx.fillRect(x + size, y + size, size, size)
+                                            }
+                                        }
+                                    }
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent
+                                    onClicked: {
+                                        uvColorSlider.value = index
+                                        if (_micromController) {
+                                            var colorValue = index + (transparencyToggle.checked ? 8 : 0)
+                                            _micromController.setUVColor(colorValue)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    RowLayout {
+                        spacing: ScreenTools.defaultFontPixelWidth
+                        Layout.fillWidth: true
+
+                        QGCLabel {
+                            text:                   qsTr("Color:")
+                            Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 6
+                        }
+
+                        QGCLabel {
+                            property int colorIndex: _micromController ? (_micromController.uvColor % 8) : 0
+                            text:                   parent.parent.parent.uvColorNames[colorIndex]
+                            Layout.fillWidth:       true
+                            horizontalAlignment:    Text.AlignRight
+                        }
+                    }
+
+                    Slider {
+                        id:                     uvColorSlider
+                        from:                   0
+                        to:                     7
+                        stepSize:               1
+                        value:                  _micromController ? (_micromController.uvColor % 8) : 0
+                        Layout.preferredWidth:  _sliderWidth
+                        Layout.preferredHeight: ScreenTools.defaultFontPixelHeight * 2
+                        enabled:                _micromController && _micromController.connected
+
+                        background: Rectangle {
+                            x:              uvColorSlider.leftPadding
+                            y:              uvColorSlider.topPadding + uvColorSlider.availableHeight / 2 - height / 2
+                            width:          uvColorSlider.availableWidth
+                            height:         ScreenTools.defaultFontPixelHeight * 0.5
+                            radius:         height / 2
+
+                            // Rainbow gradient for color slider background
+                            gradient: Gradient {
+                                orientation: Gradient.Horizontal
+                                GradientStop { position: 0.000; color: "#FF0000" }
+                                GradientStop { position: 0.143; color: "#FF8000" }
+                                GradientStop { position: 0.286; color: "#FFFF00" }
+                                GradientStop { position: 0.429; color: "#00FF00" }
+                                GradientStop { position: 0.571; color: "#00FFFF" }
+                                GradientStop { position: 0.714; color: "#0080FF" }
+                                GradientStop { position: 0.857; color: "#8000FF" }
+                                GradientStop { position: 1.000; color: "#FF00FF" }
+                            }
+                        }
+
+                        handle: Rectangle {
+                            x:              uvColorSlider.leftPadding + uvColorSlider.visualPosition * (uvColorSlider.availableWidth - width)
+                            y:              uvColorSlider.topPadding + uvColorSlider.availableHeight / 2 - height / 2
+                            width:          ScreenTools.defaultFontPixelHeight * 1.5
+                            height:         width
+                            radius:         width / 2
+                            color:          uvColorSlider.pressed ? qgcPal.buttonHighlight : qgcPal.button
+                            border.color:   qgcPal.buttonText
+                            border.width:   1
+                        }
+
+                        onPressedChanged: {
+                            if (!pressed && _micromController) {
+                                var colorValue = value + (transparencyToggle.checked ? 8 : 0)
+                                _micromController.setUVColor(colorValue)
+                            }
+                        }
+                    }
+
+                    // Transparency toggle
+                    RowLayout {
+                        spacing: ScreenTools.defaultFontPixelWidth
+                        Layout.fillWidth: true
+
+                        QGCCheckBox {
+                            id:         transparencyToggle
+                            text:       qsTr("Transparent overlay")
+                            checked:    _micromController ? (_micromController.uvColor >= 8) : false
+                            enabled:    _micromController && _micromController.connected
+                            onClicked: {
+                                if (_micromController) {
+                                    var colorValue = uvColorSlider.value + (checked ? 8 : 0)
+                                    _micromController.setUVColor(colorValue)
+                                }
+                            }
+                        }
+                    }
+
+                    QGCLabel {
+                        text:               qsTr("Color of UV detection overlay")
+                        font.pointSize:     ScreenTools.smallFontPointSize
+                        Layout.alignment:   Qt.AlignHCenter
+                        opacity:            0.7
+                    }
+                }
             }
         }
     }

@@ -29,6 +29,7 @@ public:
     Q_PROPERTY(bool     recording       READ recording      NOTIFY recordingChanged)
     Q_PROPERTY(int      zoom            READ zoom           NOTIFY zoomChanged)
     Q_PROPERTY(int      gain            READ gain           NOTIFY gainChanged)
+    Q_PROPERTY(int      uvColor         READ uvColor        NOTIFY uvColorChanged)
     Q_PROPERTY(QString  cameraIP        READ cameraIP       WRITE setCameraIP   NOTIFY cameraIPChanged)
     Q_PROPERTY(QString  lastError       READ lastError      NOTIFY lastErrorChanged)
     Q_PROPERTY(bool     sdCardPresent   READ sdCardPresent  NOTIFY sdCardPresentChanged)
@@ -37,6 +38,7 @@ public:
     bool    recording() const       { return _recording; }
     int     zoom() const            { return _zoom; }
     int     gain() const            { return _gain; }
+    int     uvColor() const         { return _uvColor; }
     QString cameraIP() const        { return _cameraIP; }
     QString lastError() const       { return _lastError; }
     bool    sdCardPresent() const   { return _sdCardPresent; }
@@ -49,6 +51,7 @@ public:
     Q_INVOKABLE void stopVideo();
     Q_INVOKABLE void setZoom(int value);
     Q_INVOKABLE void setGain(int value);
+    Q_INVOKABLE void setUVColor(int value);
     Q_INVOKABLE void queryStatus();
 
 signals:
@@ -56,6 +59,7 @@ signals:
     void recordingChanged();
     void zoomChanged();
     void gainChanged();
+    void uvColorChanged();
     void cameraIPChanged();
     void lastErrorChanged();
     void sdCardPresentChanged();
@@ -86,6 +90,7 @@ private:
     bool        _sdCardPresent       = true;   // Assume present until we know otherwise
     int         _zoom                = 0;
     int         _gain                = 130;    // Default gain per OFIL docs
+    int         _uvColor             = 0;      // UV color palette (0-15, where 0-7 are opaque, 8-15 are transparent)
     int         _keepaliveMisses     = 0;
     bool        _pendingVideoStart   = false;  // Track if we're waiting for video start confirmation
     bool        _pendingVideoStop    = false;  // Track if we're waiting for video stop confirmation
