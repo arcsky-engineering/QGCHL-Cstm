@@ -336,66 +336,14 @@ Item {
                         return uvColorNames[idx] || "Red"
                     }
 
-                    QGCLabel {
-                        text:               qsTr("UV Color Palette")
-                        font.pointSize:     ScreenTools.defaultFontPointSize
-                        font.weight:        Font.Medium
-                    }
-
-                    // Color preview boxes
-                    Row {
-                        spacing: ScreenTools.defaultFontPixelWidth * 0.3
-                        Layout.alignment: Qt.AlignHCenter
-
-                        Repeater {
-                            model: 8
-                            Rectangle {
-                                width:          ScreenTools.defaultFontPixelWidth * 3.5
-                                height:         ScreenTools.defaultFontPixelHeight * 1.2
-                                color:          uvColorLayout.getUVColor(index)
-                                opacity:        uvColorSlider.value === index ? 1.0 : 0.4
-                                border.width:   uvColorSlider.value === index ? 2 : 0
-                                border.color:   qgcPal.buttonText
-                                radius:         2
-
-                                // Checkered pattern for transparency preview
-                                Canvas {
-                                    anchors.fill: parent
-                                    visible: transparencyToggle.checked
-                                    onPaint: {
-                                        var ctx = getContext("2d")
-                                        ctx.fillStyle = "#808080"
-                                        var size = 4
-                                        for (var x = 0; x < width; x += size * 2) {
-                                            for (var y = 0; y < height; y += size * 2) {
-                                                ctx.fillRect(x, y, size, size)
-                                                ctx.fillRect(x + size, y + size, size, size)
-                                            }
-                                        }
-                                    }
-                                }
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    onClicked: {
-                                        uvColorSlider.value = index
-                                        if (_micromController) {
-                                            var colorValue = index + (transparencyToggle.checked ? 8 : 0)
-                                            _micromController.setUVColor(colorValue)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
                     RowLayout {
                         spacing: ScreenTools.defaultFontPixelWidth
                         Layout.fillWidth: true
 
                         QGCLabel {
-                            text:                   qsTr("Color:")
-                            Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 6
+                            text:               qsTr("UV Color:")
+                            font.pointSize:     ScreenTools.defaultFontPointSize
+                            font.weight:        Font.Medium
                         }
 
                         QGCLabel {
