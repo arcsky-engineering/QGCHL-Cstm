@@ -93,6 +93,13 @@
     "longDesc":  "File that defines custom actions to send connected vehicle",
     "type":      "string",
     "default":   ""
+},
+{
+    "name":         "showGuidedActionSlider",
+    "shortDesc":    "Show guided action slider",
+    "longDesc":     "If enabled, a slider will be shown for guided actions like takeoff, altitude change, etc. If disabled, the action will use default values.",
+    "type":         "bool",
+    "default":      true
 }
 ]
 }

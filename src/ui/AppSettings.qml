@@ -69,7 +69,7 @@ Rectangle {
                     text:               modelData.title
                     autoExclusive:      true
                     Layout.fillWidth:   true
-                    visible:            modelData.url != "qrc:/qml/RemoteIDSettings.qml" ? true : QGroundControl.settingsManager.remoteIDSettings.enable.rawValue
+                    visible:            true
 
                     onClicked: {
                         if (mainWindow.preventViewSwitch()) {

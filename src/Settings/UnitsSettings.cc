@@ -31,17 +31,8 @@ DECLARE_SETTINGSFACT_NO_FUNC(UnitsSettings, horizontalDistanceUnits)
         metaData->setShortDescription(UnitsSettings::tr("Distance units"));
         metaData->setEnumInfo(enumStrings, enumValues);
 
-        HorizontalDistanceUnits defaultHorizontalDistanceUnit = HorizontalDistanceUnitsMeters;
-        switch(QLocale::system().measurementSystem()) {
-            case QLocale::MetricSystem: {
-                defaultHorizontalDistanceUnit = HorizontalDistanceUnitsMeters;
-            } break;
-            case QLocale::ImperialUSSystem:
-            case QLocale::ImperialUKSystem:
-                defaultHorizontalDistanceUnit = HorizontalDistanceUnitsFeet;
-                break;
-        }
-        metaData->setRawDefaultValue(defaultHorizontalDistanceUnit);
+        // Force metric units as default
+        metaData->setRawDefaultValue(HorizontalDistanceUnitsMeters);
         metaData->setQGCRebootRequired(true);
         _horizontalDistanceUnitsFact = new SettingsFact(_settingsGroup, metaData, this);
     }
@@ -61,17 +52,8 @@ DECLARE_SETTINGSFACT_NO_FUNC(UnitsSettings, verticalDistanceUnits)
         metaData->setName(verticalDistanceUnitsName);
         metaData->setShortDescription(UnitsSettings::tr("Altitude units"));
         metaData->setEnumInfo(enumStrings, enumValues);
-        VerticalDistanceUnits defaultVerticalAltitudeUnit = VerticalDistanceUnitsMeters;
-        switch(QLocale::system().measurementSystem()) {
-            case QLocale::MetricSystem: {
-                defaultVerticalAltitudeUnit = VerticalDistanceUnitsMeters;
-            } break;
-            case QLocale::ImperialUSSystem:
-            case QLocale::ImperialUKSystem:
-                defaultVerticalAltitudeUnit = VerticalDistanceUnitsFeet;
-                break;
-        }
-        metaData->setRawDefaultValue(defaultVerticalAltitudeUnit);
+        // Force metric units as default
+        metaData->setRawDefaultValue(VerticalDistanceUnitsMeters);
         metaData->setQGCRebootRequired(true);
         _verticalDistanceUnitsFact = new SettingsFact(_settingsGroup, metaData, this);
     }
@@ -97,17 +79,8 @@ DECLARE_SETTINGSFACT_NO_FUNC(UnitsSettings, areaUnits)
         metaData->setShortDescription(UnitsSettings::tr("Area units"));
         metaData->setEnumInfo(enumStrings, enumValues);
 
-        AreaUnits defaultAreaUnit = AreaUnitsSquareMeters;
-        switch(QLocale::system().measurementSystem()) {
-            case QLocale::MetricSystem: {
-                defaultAreaUnit = AreaUnitsSquareMeters;
-            } break;
-            case QLocale::ImperialUSSystem:
-            case QLocale::ImperialUKSystem:
-                defaultAreaUnit = AreaUnitsSquareMiles;
-                break;
-        }
-        metaData->setRawDefaultValue(defaultAreaUnit);
+        // Force metric units as default
+        metaData->setRawDefaultValue(AreaUnitsSquareMeters);
         metaData->setQGCRebootRequired(true);
         _areaUnitsFact = new SettingsFact(_settingsGroup, metaData, this);
     }
@@ -132,17 +105,8 @@ DECLARE_SETTINGSFACT_NO_FUNC(UnitsSettings, speedUnits)
         metaData->setShortDescription(UnitsSettings::tr("Speed units"));
         metaData->setEnumInfo(enumStrings, enumValues);
 
-        SpeedUnits defaultSpeedUnit = SpeedUnitsMetersPerSecond;
-        switch(QLocale::system().measurementSystem()) {
-            case QLocale::MetricSystem: {
-                defaultSpeedUnit = SpeedUnitsMetersPerSecond;
-            } break;
-            case QLocale::ImperialUSSystem:
-            case QLocale::ImperialUKSystem:
-                defaultSpeedUnit = SpeedUnitsMilesPerHour;
-                break;
-        }
-        metaData->setRawDefaultValue(defaultSpeedUnit);
+        // Force metric units as default
+        metaData->setRawDefaultValue(SpeedUnitsMetersPerSecond);
         metaData->setQGCRebootRequired(true);
         _speedUnitsFact = new SettingsFact(_settingsGroup, metaData, this);
     }
@@ -162,17 +126,8 @@ DECLARE_SETTINGSFACT_NO_FUNC(UnitsSettings, temperatureUnits)
         metaData->setShortDescription(UnitsSettings::tr("Temperature units"));
         metaData->setEnumInfo(enumStrings, enumValues);
 
-        TemperatureUnits defaultTemperatureUnit = TemperatureUnitsCelsius;
-        switch(QLocale::system().measurementSystem()) {
-            case QLocale::MetricSystem: {
-                defaultTemperatureUnit = TemperatureUnitsCelsius;
-            } break;
-            case QLocale::ImperialUSSystem:
-            case QLocale::ImperialUKSystem:
-                defaultTemperatureUnit = TemperatureUnitsFarenheit;
-                break;
-        }
-        metaData->setRawDefaultValue(defaultTemperatureUnit);
+        // Force metric units as default
+        metaData->setRawDefaultValue(TemperatureUnitsCelsius);
         metaData->setQGCRebootRequired(true);
         _temperatureUnitsFact = new SettingsFact(_settingsGroup, metaData, this);
     }
@@ -195,17 +150,8 @@ DECLARE_SETTINGSFACT_NO_FUNC(UnitsSettings, weightUnits)
         metaData->setName(weightUnitsName);
         metaData->setShortDescription(UnitsSettings::tr("Weight units"));
         metaData->setEnumInfo(enumStrings, enumValues);
-        WeightUnits defaultWeightUnit = WeightUnitsGrams;
-        switch(QLocale::system().measurementSystem()) {
-            case QLocale::MetricSystem:
-            case QLocale::ImperialUKSystem: {
-                defaultWeightUnit = WeightUnitsGrams;
-            } break;
-            case QLocale::ImperialUSSystem:
-                defaultWeightUnit = WeightUnitsOz;
-                break;
-        }
-        metaData->setRawDefaultValue(defaultWeightUnit);
+        // Force metric units as default (Kg instead of Grams for more practical display)
+        metaData->setRawDefaultValue(WeightUnitsKg);
         metaData->setQGCRebootRequired(true);
         _weightUnitsFact = new SettingsFact(_settingsGroup, metaData, this);
     }

@@ -451,6 +451,7 @@ const QVariantList& QGCCorePlugin::toolBarIndicators(void)
     if(_toolBarIndicatorList.size() == 0) {
         _toolBarIndicatorList = QVariantList({
                                                  QVariant::fromValue(QUrl::fromUserInput("qrc:/toolbar/GPSRTKIndicator.qml")),
+                                                 QVariant::fromValue(QUrl::fromUserInput("qrc:/toolbar/QuickSettingsIndicator.qml")),
                                              });
     }
     return _toolBarIndicatorList;
@@ -458,8 +459,8 @@ const QVariantList& QGCCorePlugin::toolBarIndicators(void)
 
 QList<int> QGCCorePlugin::firstRunPromptStdIds(void)
 {
-    QList<int> rgStdIds = { unitsFirstRunPromptId, offlineVehicleFirstRunPromptId };
-    return rgStdIds;
+    // Return empty list to skip first run prompts (defaults are pre-configured)
+    return QList<int>();
 }
 
 QList<int> QGCCorePlugin::firstRunPromptCustomIds(void)

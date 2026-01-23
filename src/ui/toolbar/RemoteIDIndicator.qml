@@ -24,7 +24,7 @@ Item {
     anchors.top:    parent.top
     anchors.bottom: parent.bottom
 
-    property bool showIndicator: QGroundControl.settingsManager.remoteIDSettings.enable.value
+    property bool showIndicator: _activeVehicle ? true : false
 
     property var    _activeVehicle:     QGroundControl.multiVehicleManager.activeVehicle
     property int    remoteIDState:      getRemoteIDState()

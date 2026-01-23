@@ -320,12 +320,21 @@ Item {
 
                 // UV Color Palette control
                 ColumnLayout {
-                    spacing: ScreenTools.defaultFontPixelHeight * 0.25
+                    id:         uvColorLayout
+                    spacing:    ScreenTools.defaultFontPixelHeight * 0.25
                     Layout.fillWidth: true
 
                     // Color palette property to map values 0-7 to colors
                     property var uvColors: ["#FF0000", "#FF8000", "#FFFF00", "#00FF00", "#00FFFF", "#0080FF", "#8000FF", "#FF00FF"]
                     property var uvColorNames: ["Red", "Orange", "Yellow", "Green", "Light Blue", "Blue", "Purple", "Pink"]
+
+                    function getUVColor(idx) {
+                        return uvColors[idx] || "#FF0000"
+                    }
+
+                    function getUVColorName(idx) {
+                        return uvColorNames[idx] || "Red"
+                    }
 
                     QGCLabel {
                         text:               qsTr("UV Color Palette")
@@ -343,7 +352,7 @@ Item {
                             Rectangle {
                                 width:          ScreenTools.defaultFontPixelWidth * 3.5
                                 height:         ScreenTools.defaultFontPixelHeight * 1.2
-                                color:          parent.parent.parent.uvColors[index]
+                                color:          uvColorLayout.getUVColor(index)
                                 opacity:        uvColorSlider.value === index ? 1.0 : 0.4
                                 border.width:   uvColorSlider.value === index ? 2 : 0
                                 border.color:   qgcPal.buttonText
@@ -391,7 +400,7 @@ Item {
 
                         QGCLabel {
                             property int colorIndex: _micromController ? (_micromController.uvColor % 8) : 0
-                            text:                   parent.parent.parent.uvColorNames[colorIndex]
+                            text:                   uvColorLayout.getUVColorName(colorIndex)
                             Layout.fillWidth:       true
                             horizontalAlignment:    Text.AlignRight
                         }
@@ -407,24 +416,40 @@ Item {
                         Layout.preferredHeight: ScreenTools.defaultFontPixelHeight * 2
                         enabled:                _micromController && _micromController.connected
 
-                        background: Rectangle {
+                        background: Item {
                             x:              uvColorSlider.leftPadding
                             y:              uvColorSlider.topPadding + uvColorSlider.availableHeight / 2 - height / 2
                             width:          uvColorSlider.availableWidth
                             height:         ScreenTools.defaultFontPixelHeight * 0.5
-                            radius:         height / 2
 
-                            // Rainbow gradient for color slider background
-                            gradient: Gradient {
-                                orientation: Gradient.Horizontal
-                                GradientStop { position: 0.000; color: "#FF0000" }
-                                GradientStop { position: 0.143; color: "#FF8000" }
-                                GradientStop { position: 0.286; color: "#FFFF00" }
-                                GradientStop { position: 0.429; color: "#00FF00" }
-                                GradientStop { position: 0.571; color: "#00FFFF" }
-                                GradientStop { position: 0.714; color: "#0080FF" }
-                                GradientStop { position: 0.857; color: "#8000FF" }
-                                GradientStop { position: 1.000; color: "#FF00FF" }
+                            // Use a Row of colored rectangles for horizontal gradient (Qt 5.11 compatible)
+                            Row {
+                                anchors.fill: parent
+                                Repeater {
+                                    model: 8
+                                    Rectangle {
+                                        width:  parent.width / 8
+                                        height: parent.height
+                                        color:  uvColorLayout.getUVColor(index)
+                                        radius: index === 0 ? height / 2 : (index === 7 ? height / 2 : 0)
+
+                                        // Round only left corners for first, right corners for last
+                                        Rectangle {
+                                            visible:        index === 0
+                                            anchors.right:  parent.right
+                                            width:          parent.width / 2
+                                            height:         parent.height
+                                            color:          parent.color
+                                        }
+                                        Rectangle {
+                                            visible:        index === 7
+                                            anchors.left:   parent.left
+                                            width:          parent.width / 2
+                                            height:         parent.height
+                                            color:          parent.color
+                                        }
+                                    }
+                                }
                             }
                         }
 

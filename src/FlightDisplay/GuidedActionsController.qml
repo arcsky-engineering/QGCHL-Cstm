@@ -33,6 +33,9 @@ Item {
     property var guidedValueSlider
     property var orbitMapCircle
 
+    property var  _flyViewSettings:         QGroundControl.settingsManager.flyViewSettings
+    property bool _showGuidedActionSlider:  _flyViewSettings ? _flyViewSettings.showGuidedActionSlider.rawValue : true
+
     readonly property string emergencyStopTitle:            qsTr("EMERGENCY STOP")
     readonly property string armTitle:                      qsTr("Arm")
     readonly property string forceArmTitle:                 qsTr("Force Arm")
@@ -406,7 +409,7 @@ Item {
             confirmDialog.title = takeoffTitle
             confirmDialog.message = takeoffMessage
             confirmDialog.hideTrigger = Qt.binding(function() { return !showTakeoff })
-            guidedValueSlider.visible = true
+            guidedValueSlider.visible = _showGuidedActionSlider
             break;
         case actionStartMission:
             showImmediate = false
@@ -451,7 +454,7 @@ Item {
             confirmDialog.title = changeAltTitle
             confirmDialog.message = changeAltMessage
             confirmDialog.hideTrigger = Qt.binding(function() { return !showChangeAlt })
-            guidedValueSlider.visible = true
+            guidedValueSlider.visible = _showGuidedActionSlider
             break;
         case actionGoto:
             confirmDialog.title = gotoTitle
@@ -466,7 +469,7 @@ Item {
             confirmDialog.title = orbitTitle
             confirmDialog.message = orbitMessage
             confirmDialog.hideTrigger = Qt.binding(function() { return !showOrbit })
-            guidedValueSlider.visible = true
+            guidedValueSlider.visible = _showGuidedActionSlider
             break;
         case actionLandAbort:
             confirmDialog.title = landAbortTitle
@@ -477,7 +480,7 @@ Item {
             confirmDialog.title = pauseTitle
             confirmDialog.message = pauseMessage
             confirmDialog.hideTrigger = Qt.binding(function() { return !showPause })
-            guidedValueSlider.visible = true
+            guidedValueSlider.visible = _showGuidedActionSlider
             break;
         case actionMVPause:
             confirmDialog.title = mvPauseTitle
@@ -506,7 +509,7 @@ Item {
             confirmDialog.hideTrigger = true
             confirmDialog.title = changeSpeedTitle
             confirmDialog.message = changeSpeedMessage
-            guidedValueSlider.visible = true
+            guidedValueSlider.visible = _showGuidedActionSlider
             break
         case actionGripper:
             confirmDialog.hideTrigger = true
