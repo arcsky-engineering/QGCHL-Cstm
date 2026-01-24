@@ -315,36 +315,6 @@ Rectangle {
                 }
             }
 
-            // Location Type dropdown
-            Rectangle {
-                id:                     locationTypeRectangle
-                Layout.preferredHeight: locationTypeGrid.height + (_margins * 2)
-                Layout.preferredWidth:  gpsRectangle.width
-                color:                  qgcPal.windowShade
-                Layout.alignment:       Qt.AlignHCenter
-
-                GridLayout {
-                    id:                         locationTypeGrid
-                    anchors.margins:            _margins
-                    anchors.top:                parent.top
-                    anchors.horizontalCenter:   parent.horizontalCenter
-                    columns:                    2
-                    rowSpacing:                 _margins
-                    columnSpacing:              _margins * 2
-
-                    QGCLabel {
-                        text:               qsTr("Location Type:")
-                        Layout.fillWidth:   true
-                    }
-                    FactComboBox {
-                        id:                     locationTypeCombo
-                        fact:                   QGroundControl.settingsManager.remoteIDSettings.locationType
-                        indexModel:             false
-                        Layout.preferredWidth:  _comboFieldWidth
-                    }
-                }
-            }
-
             // Info text
             QGCLabel {
                 text:               _locationType === 1 ?
