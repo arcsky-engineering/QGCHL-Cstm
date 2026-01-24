@@ -256,9 +256,41 @@ Rectangle {
                 }
             }
 
+            // Location Type dropdown
+            Rectangle {
+                id:                     locationTypeRectangle
+                Layout.preferredHeight: locationTypeGrid.height + (_margins * 2)
+                Layout.preferredWidth:  gpsRectangle.width
+                color:                  qgcPal.windowShade
+                Layout.alignment:       Qt.AlignHCenter
+
+                GridLayout {
+                    id:                         locationTypeGrid
+                    anchors.margins:            _margins
+                    anchors.top:                parent.top
+                    anchors.horizontalCenter:   parent.horizontalCenter
+                    columns:                    2
+                    rowSpacing:                 _margins
+                    columnSpacing:              _margins * 2
+
+                    QGCLabel {
+                        text:               qsTr("Location Type:")
+                        Layout.fillWidth:   true
+                    }
+                    FactComboBox {
+                        id:                     locationTypeCombo
+                        fact:                   QGroundControl.settingsManager.remoteIDSettings.locationType
+                        indexModel:             false
+                        Layout.preferredWidth:  _comboFieldWidth
+                    }
+                }
+            }
+
             // Info text
             QGCLabel {
-                text:               qsTr("Operator location is automatically sent to the vehicle\nusing Live GNSS from your device.")
+                text:               _locationType === 1 ?
+                                    qsTr("Operator location is automatically sent to the vehicle\nusing Live GNSS from your device.") :
+                                    qsTr("Using fixed operator location.\nSet coordinates in Remote ID settings if needed.")
                 Layout.alignment:   Qt.AlignHCenter
                 horizontalAlignment: Text.AlignHCenter
                 font.pointSize:     ScreenTools.smallFontPointSize

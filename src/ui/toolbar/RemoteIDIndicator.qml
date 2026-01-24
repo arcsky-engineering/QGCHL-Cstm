@@ -85,7 +85,7 @@ Item {
         if (!commsFlag || !armFlag || emergencyDeclared) {
             return RemoteIDIndicator.RIDState.ERROR
         }
-        if (!gpsFlag || !basicIDFlag) {
+        if (!gpsFlag) {
             return RemoteIDIndicator.RIDState.WARNING
         }
         if (_regionOperation == RemoteIDIndicator.RegionOperation.EU || QGroundControl.settingsManager.remoteIDSettings.sendOperatorID.value) {
@@ -196,31 +196,6 @@ Item {
                         QGCLabel {
                             anchors.fill:           parent
                             text:                   qsTr("GCS GPS")
-                            wrapMode:               Text.WordWrap
-                            horizontalAlignment:    Text.AlignHCenter
-                            verticalAlignment:      Text.AlignVCenter
-                            font.bold:              true
-                            font.pointSize:         ScreenTools.smallFontPointSize
-                        }
-
-                        QGCMouseArea {
-                            anchors.fill:   parent
-                            onClicked:      goToSettings()
-                        }
-                    }
-
-                    Image {
-                        id:                 basicIDFlagIge
-                        width:              flagsWidth
-                        height:             flagsHeight
-                        source:             basicIDFlag ? "/qmlimages/RidFlagBackgroundGreen.svg" : "/qmlimages/RidFlagBackgroundRed.svg"
-                        fillMode:           Image.PreserveAspectFit
-                        sourceSize.height:  height
-                        visible:            commsFlag
-
-                        QGCLabel {
-                            anchors.fill:           parent
-                            text:                   qsTr("BASIC ID")
                             wrapMode:               Text.WordWrap
                             horizontalAlignment:    Text.AlignHCenter
                             verticalAlignment:      Text.AlignVCenter

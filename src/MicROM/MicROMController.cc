@@ -108,7 +108,7 @@ void MicROMController::setUVColor(int value)
     if (value > 15) value = 15;
 
     qDebug() << "MicROMController: Setting UV color palette to" << value;
-    _sendCommand(QString("IC_UVC%1").arg(value));
+    _sendCommand(QString("IC_UVCS%1").arg(value));
     _uvColor = value;
     emit uvColorChanged();
 }
@@ -119,7 +119,7 @@ void MicROMController::queryStatus()
     // Note: IC_KQV (video status query) is not implemented by camera firmware
     _sendCommand("IC_MZQ");
     _sendCommand("IC_GAQ");
-    _sendCommand("IC_UVQC");  // Query UV color palette
+    _sendCommand("IC_UVCQ");  // Query UV color palette
     _sendCommand("IC_SDPQ");  // Query SD card presence
 }
 
@@ -235,9 +235,9 @@ void MicROMController::_parseResponse(const QByteArray& data)
         return;
     }
 
-    // Parse UV color palette response: CI_UVC<value> or CI_UVRC<value>
-    if (response.startsWith("CI_UVC") || response.startsWith("CI_UVRC")) {
-        QString suffix = response.startsWith("CI_UVRC") ? response.mid(7) : response.mid(6);
+    // Parse UV color palette response: CI_UVCS<value> (set ack) or CI_UVCR<value> (query response)
+    if (response.startsWith("CI_UVCS") || response.startsWith("CI_UVCR")) {
+        QString suffix = response.mid(7);  // Both have 7 character prefix
         bool ok;
         int value = suffix.toInt(&ok);
         if (ok && value >= 0 && value <= 15) {
