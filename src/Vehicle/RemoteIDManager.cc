@@ -78,11 +78,9 @@ RemoteIDManager::RemoteIDManager(Vehicle* vehicle)
     // Check if we should force-enable RID on vehicle connect
     AppSettings* appSettings = qgcApp()->toolbox()->settingsManager()->appSettings();
     if (appSettings->enableRIDOnConnect()->rawValue().toBool()) {
-        _available = true;
         _commsGood = true;
         _checkGCSBasicID();
         _sendMessagesTimer.start();
-        emit availableChanged();
         emit commsGoodChanged();
         qCDebug(RemoteIDManagerLog) << "RID force-enabled on vehicle connect";
     }
