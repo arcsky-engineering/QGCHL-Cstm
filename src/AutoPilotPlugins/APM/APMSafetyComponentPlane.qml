@@ -63,21 +63,21 @@ SetupPage {
                         id:                 throttleEnableCheckBox
                         anchors.margins:    _margins
                         anchors.left:       parent.left
-                        anchors.baseline:   throttlePWMField.baseline
-                        text:               qsTr("Throttle PWM threshold:")
+                        anchors.top:        parent.top
+                        text:               qsTr("Radio failsafe")
                         checked:            _failsafeThrEnable.value == 1
 
                         onClicked: _failsafeThrEnable.value = (checked ? 1 : 0)
                     }
 
-                    FactTextField {
+                    // Hidden: Throttle PWM threshold field
+                    Item {
                         id:                 throttlePWMField
                         anchors.margins:    _margins
                         anchors.left:       throttleEnableCheckBox.right
                         anchors.top:        parent.top
-                        fact:               _failsafeThrValue
-                        showUnits:          true
-                        enabled:            throttleEnableCheckBox.checked
+                        width:              1
+                        height:             throttleEnableCheckBox.height
                     }
 
                     QGCCheckBox {
@@ -101,32 +101,33 @@ SetupPage {
                         enabled:            voltageCheckBox.checked
                     }
 
-                    QGCCheckBox {
-                        id:                 mahCheckBox
-                        anchors.margins:    _margins
-                        anchors.left:       parent.left
-                        anchors.baseline:   mahField.baseline
-                        text:               qsTr("MAH threshold:")
-                        checked:            _failsafeBattMah.value != 0
+                    // Hidden: MAH threshold
+                    // QGCCheckBox {
+                    //     id:                 mahCheckBox
+                    //     anchors.margins:    _margins
+                    //     anchors.left:       parent.left
+                    //     anchors.baseline:   mahField.baseline
+                    //     text:               qsTr("MAH threshold:")
+                    //     checked:            _failsafeBattMah.value != 0
+                    //
+                    //     onClicked: _failsafeBattMah.value = checked ? 600 : 0
+                    // }
 
-                        onClicked: _failsafeBattMah.value = checked ? 600 : 0
-                    }
-
-                    FactTextField {
+                    // Hidden: FactTextField for MAH
+                    Item {
                         id:                 mahField
                         anchors.topMargin:  _margins / 2
                         anchors.left:       throttlePWMField.left
                         anchors.top:        voltageField.bottom
-                        fact:               _failsafeBattMah
-                        showUnits:          true
-                        enabled:            mahCheckBox.checked
+                        width:              1
+                        height:             1
                     }
 
                     QGCCheckBox {
                         id:                 gcsCheckbox
                         anchors.margins:    _margins
                         anchors.left:       parent.left
-                        anchors.top:        mahField.bottom
+                        anchors.top:        voltageField.bottom
                         text:               qsTr("GCS failsafe")
                         checked:            _failsafeGCSEnable.value != 0
 
@@ -165,21 +166,29 @@ SetupPage {
                         anchors.topMargin:  _margins / 2
                         anchors.left:       returnAtCurrentRadio.left
                         anchors.top:        returnAtCurrentRadio.bottom
-                        text:               qsTr("Return at specified altitude:")
+                        text:               qsTr("Return at specified altitude (m):")
                         exclusiveGroup:     returnAltRadioGroup
                         checked:            _rtlAltFact.value >= 0
 
                         onClicked: _rtlAltFact.value = 10000
                     }
 
-                    FactTextField {
+                    QGCTextField {
                         id:                 rltAltField
                         anchors.leftMargin: _margins
                         anchors.left:       returnAltRadio.right
                         anchors.baseline:   returnAltRadio.baseline
-                        fact:               _rtlAltFact
-                        showUnits:          true
+                        text:               _rtlAltFact.value >= 0 ? (_rtlAltFact.rawValue / 100).toFixed(1) : "--"
+                        inputMethodHints:   Qt.ImhFormattedNumbersOnly
                         enabled:            returnAltRadio.checked
+
+                        onEditingFinished: {
+                            var value = parseFloat(text)
+                            if (isNaN(value)) value = 0
+                            value = Math.max(0, Math.min(300, value))
+                            _rtlAltFact.rawValue = Math.round(value * 100)
+                            text = value.toFixed(1)
+                        }
                     }
                 } // Rectangle - RTL Settings
             } // Column - RTL Settings

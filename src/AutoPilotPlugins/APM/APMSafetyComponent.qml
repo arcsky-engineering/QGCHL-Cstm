@@ -105,19 +105,21 @@ SetupPage {
                             Layout.fillWidth:   true
                         }
 
-                        QGCLabel { text: qsTr("Low mAh threshold:") }
-                        FactTextField {
-                            fact:               failsafeBattLowMah
-                            showUnits:          true
-                            Layout.fillWidth:   true
-                        }
+                        // Hidden: Low mAh threshold
+                        // QGCLabel { text: qsTr("Low mAh threshold:") }
+                        // FactTextField {
+                        //     fact:               failsafeBattLowMah
+                        //     showUnits:          true
+                        //     Layout.fillWidth:   true
+                        // }
 
-                        QGCLabel { text: qsTr("Critical mAh threshold:") }
-                        FactTextField {
-                            fact:               failsafeBattCritMah
-                            showUnits:          true
-                            Layout.fillWidth:   true
-                        }
+                        // Hidden: Critical mAh threshold
+                        // QGCLabel { text: qsTr("Critical mAh threshold:") }
+                        // FactTextField {
+                        //     fact:               failsafeBattCritMah
+                        //     showUnits:          true
+                        //     Layout.fillWidth:   true
+                        // }
                     } // GridLayout
                 } // Column
             }
@@ -235,17 +237,18 @@ SetupPage {
                             RowLayout {
                                 QGCCheckBox {
                                     id:                 throttleEnableCheckBox
-                                    text:               qsTr("Throttle PWM threshold:")
+                                    text:               qsTr("Radio failsafe:")
                                     checked:            _failsafeThrEnable.value === 1
 
                                     onClicked: _failsafeThrEnable.value = (checked ? 1 : 0)
                                 }
 
-                                FactTextField {
-                                    fact:               _failsafeThrValue
-                                    showUnits:          true
-                                    enabled:            throttleEnableCheckBox.checked
-                                }
+                                // Hidden: PWM threshold field for Plane
+                                // FactTextField {
+                                //     fact:               _failsafeThrValue
+                                //     showUnits:          true
+                                //     enabled:            throttleEnableCheckBox.checked
+                                // }
                             }
 
                             QGCCheckBox {
@@ -300,18 +303,19 @@ SetupPage {
                                 indexModel:         false
                             }
 
-                            QGCLabel { text: qsTr("Throttle failsafe:") }
+                            QGCLabel { text: qsTr("Radio failsafe:") }
                             FactComboBox {
                                 Layout.fillWidth:   true
                                 fact:               _failsafeThrEnable
                                 indexModel:         false
                             }
 
-                            QGCLabel { text: qsTr("PWM threshold:") }
-                            FactTextField {
-                                Layout.fillWidth:   true
-                                fact:               _failsafeThrValue
-                            }
+                            // Hidden: PWM threshold for Rover
+                            // QGCLabel { text: qsTr("PWM threshold:") }
+                            // FactTextField {
+                            //     Layout.fillWidth:   true
+                            //     fact:               _failsafeThrValue
+                            // }
 
                             QGCLabel { text: qsTr("Failsafe Crash Check:") }
                             FactComboBox {
@@ -370,7 +374,7 @@ SetupPage {
                                     Layout.fillWidth:   true
                                 }
 
-                                QGCLabel { text: qsTr("Throttle failsafe:") }
+                                QGCLabel { text: qsTr("Radio failsafe:") }
                                 QGCComboBox {
                                     model:              [qsTr("Disabled"), qsTr("Always RTL"),
                                         qsTr("Continue with Mission in Auto Mode"), qsTr("Always Land")]
@@ -380,12 +384,13 @@ SetupPage {
                                     onActivated: _failsafeThrEnable.value = index
                                 }
 
-                                QGCLabel { text: qsTr("PWM threshold:") }
-                                FactTextField {
-                                    fact:               _failsafeThrValue
-                                    showUnits:          true
-                                    Layout.fillWidth:   true
-                                }
+                                // Hidden: PWM threshold for Copter
+                                // QGCLabel { text: qsTr("PWM threshold:") }
+                                // FactTextField {
+                                //     fact:               _failsafeThrValue
+                                //     showUnits:          true
+                                //     Layout.fillWidth:   true
+                                // }
                             } // GridLayout
                         } // Column
                     } // Rectangle - Failsafe Settings
@@ -588,20 +593,28 @@ SetupPage {
                             anchors.topMargin:  _innerMargin
                             anchors.top:        returnAtCurrentRadio.bottom
                             anchors.left:       returnAtCurrentRadio.left
-                            text:               qsTr("Return at specified altitude:")
+                            text:               qsTr("Return at specified altitude (m):")
                             checked:            _rtlAltFact.value != 0
 
                             onClicked: _rtlAltFact.value = 1500
                         }
 
-                        FactTextField {
+                        QGCTextField {
                             id:                 rltAltField
                             anchors.leftMargin: _margins
                             anchors.left:       returnAltRadio.right
                             anchors.baseline:   returnAltRadio.baseline
-                            fact:               _rtlAltFact
-                            showUnits:          true
+                            text:               (_rtlAltFact.rawValue / 100).toFixed(1)
+                            inputMethodHints:   Qt.ImhFormattedNumbersOnly
                             enabled:            returnAltRadio.checked
+
+                            onEditingFinished: {
+                                var value = parseFloat(text)
+                                if (isNaN(value)) value = 0
+                                value = Math.max(0, Math.min(80, value))
+                                _rtlAltFact.rawValue = Math.round(value * 100)
+                                text = value.toFixed(1)
+                            }
                         }
 
                         QGCCheckBox {
@@ -627,31 +640,47 @@ SetupPage {
                         QGCLabel {
                             anchors.left:       returnAtCurrentRadio.left
                             anchors.baseline:   rltAltFinalField.baseline
-                            text:               qsTr("Final land stage altitude:")
+                            text:               qsTr("Final land stage altitude (m):")
                         }
 
-                        FactTextField {
+                        QGCTextField {
                             id:                 rltAltFinalField
                             anchors.topMargin:  _innerMargin
                             anchors.left:       rltAltField.left
                             anchors.top:        landDelayField.bottom
-                            fact:               _rtlAltFinalFact
-                            showUnits:          true
+                            text:               (_rtlAltFinalFact.rawValue / 100).toFixed(1)
+                            inputMethodHints:   Qt.ImhFormattedNumbersOnly
+
+                            onEditingFinished: {
+                                var value = parseFloat(text)
+                                if (isNaN(value)) value = 0
+                                value = Math.max(0, Math.min(80, value))
+                                _rtlAltFinalFact.rawValue = Math.round(value * 100)
+                                text = value.toFixed(1)
+                            }
                         }
 
                         QGCLabel {
                             anchors.left:       returnAtCurrentRadio.left
                             anchors.baseline:   landSpeedField.baseline
-                            text:               qsTr("Final land stage descent speed:")
+                            text:               qsTr("Final land stage descent speed (m/s):")
                         }
 
-                        FactTextField {
+                        QGCTextField {
                             id:                 landSpeedField
                             anchors.topMargin: _innerMargin
                             anchors.left:       rltAltField.left
                             anchors.top:        rltAltFinalField.bottom
-                            fact:               _landSpeedFact
-                            showUnits:          true
+                            text:               (_landSpeedFact.rawValue / 100).toFixed(1)
+                            inputMethodHints:   Qt.ImhFormattedNumbersOnly
+
+                            onEditingFinished: {
+                                var value = parseFloat(text)
+                                if (isNaN(value)) value = 0
+                                value = Math.max(0.1, Math.min(5, value))
+                                _landSpeedFact.rawValue = Math.round(value * 100)
+                                text = value.toFixed(1)
+                            }
                         }
                     } // Rectangle - RTL Settings
                 } // Column - RTL Settings
@@ -695,20 +724,28 @@ SetupPage {
                             anchors.topMargin:  _margins / 2
                             anchors.left:       returnAtCurrentRadio.left
                             anchors.top:        returnAtCurrentRadio.bottom
-                            text:               qsTr("Return at specified altitude:")
+                            text:               qsTr("Return at specified altitude (m):")
                             checked:            _rtlAltFact.value >= 0
 
                             onClicked: _rtlAltFact.value = 10000
                         }
 
-                        FactTextField {
+                        QGCTextField {
                             id:                 rltAltField
                             anchors.leftMargin: _margins
                             anchors.left:       returnAltRadio.right
                             anchors.baseline:   returnAltRadio.baseline
-                            fact:               _rtlAltFact
-                            showUnits:          true
+                            text:               _rtlAltFact.value >= 0 ? (_rtlAltFact.rawValue / 100).toFixed(1) : "--"
+                            inputMethodHints:   Qt.ImhFormattedNumbersOnly
                             enabled:            returnAltRadio.checked
+
+                            onEditingFinished: {
+                                var value = parseFloat(text)
+                                if (isNaN(value)) value = 0
+                                value = Math.max(0, Math.min(300, value))
+                                _rtlAltFact.rawValue = Math.round(value * 100)
+                                text = value.toFixed(1)
+                            }
                         }
                     } // Rectangle - RTL Settings
                 } // Column - RTL Settings

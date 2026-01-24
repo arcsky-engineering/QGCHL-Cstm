@@ -102,7 +102,7 @@ Rectangle {
                                 id:             useCheckList
                                 text:           qsTr("Use Preflight Checklist")
                                 fact:           _useChecklist
-                                visible:        _useChecklist.visible && QGroundControl.corePlugin.options.preFlightChecklistUrl.toString().length
+                                visible:        false // Hidden: _useChecklist.visible && QGroundControl.corePlugin.options.preFlightChecklistUrl.toString().length
 
                                 property Fact _useChecklist: QGroundControl.settingsManager.appSettings.useChecklist
                             }
@@ -111,7 +111,7 @@ Rectangle {
                                 text:           qsTr("Enforce Preflight Checklist")
                                 fact:           _enforceChecklist
                                 enabled:        QGroundControl.settingsManager.appSettings.useChecklist.value
-                                visible:        useCheckList.visible && _enforceChecklist.visible && QGroundControl.corePlugin.options.preFlightChecklistUrl.toString().length
+                                visible:        false // Hidden: useCheckList.visible && _enforceChecklist.visible && QGroundControl.corePlugin.options.preFlightChecklistUrl.toString().length
 
                                 property Fact _enforceChecklist: QGroundControl.settingsManager.appSettings.enforceChecklist
                             }
@@ -127,13 +127,14 @@ Rectangle {
                             FactCheckBox {
                                 text:       qsTr("Show Telemetry Log Replay Status Bar")
                                 fact:       _showLogReplayStatusBar
-                                visible:    _showLogReplayStatusBar.visible
+                                visible:    false // Hidden: _showLogReplayStatusBar.visible
 
                                 property Fact _showLogReplayStatusBar: QGroundControl.settingsManager.flyViewSettings.showLogReplayStatusBar
                             }
 
                             RowLayout {
                                 spacing: ScreenTools.defaultFontPixelWidth
+                                visible: false // Hidden: Virtual Joystick settings
 
                                 FactCheckBox {
                                     text:       qsTr("Virtual Joystick")
@@ -151,7 +152,7 @@ Rectangle {
 
                             FactCheckBox {
                                 text:       qsTr("Use Vertical Instrument Panel")
-                                visible:    _alternateInstrumentPanel.visible
+                                visible:    false // Hidden: _alternateInstrumentPanel.visible
                                 fact:       _alternateInstrumentPanel
 
                                 property Fact _alternateInstrumentPanel: QGroundControl.settingsManager.flyViewSettings.alternateInstrumentPanel
@@ -159,7 +160,7 @@ Rectangle {
 
                             FactCheckBox {
                                 text:       qsTr("Show additional heading indicators on Compass")
-                                visible:    _showAdditionalIndicatorsCompass.visible
+                                visible:    false // Hidden: _showAdditionalIndicatorsCompass.visible
                                 fact:       _showAdditionalIndicatorsCompass
 
                                 property Fact _showAdditionalIndicatorsCompass: QGroundControl.settingsManager.flyViewSettings.showAdditionalIndicatorsCompass
@@ -198,6 +199,14 @@ Rectangle {
                             }
 
                             FactCheckBox {
+                                text:       qsTr("Enable Remote ID on vehicle connect")
+                                visible:    _enableRIDOnConnect.visible
+                                fact:       _enableRIDOnConnect
+
+                                property Fact _enableRIDOnConnect: QGroundControl.settingsManager.appSettings.enableRIDOnConnect
+                            }
+
+                            FactCheckBox {
                                 text:       qsTr("Update home position based on device location. This will affect return to home")
                                 fact:       _updateHomePosition
                                 visible:    _updateHomePosition.visible
@@ -206,7 +215,7 @@ Rectangle {
 
                             FactCheckBox {
                                 text:       qsTr("Enable Custom Actions")
-                                visible:    _enableCustomActions.visible
+                                visible:    false // Hidden: _enableCustomActions.visible
                                 fact:       _enableCustomActions
 
                                 property Fact _enableCustomActions: QGroundControl.settingsManager.flyViewSettings.enableCustomActions
@@ -218,7 +227,7 @@ Rectangle {
                                 id: customActions
 
                                 columns:  2
-                                visible:  QGroundControl.settingsManager.flyViewSettings.enableCustomActions.rawValue
+                                visible:  false // Hidden: QGroundControl.settingsManager.flyViewSettings.enableCustomActions.rawValue
 
                                 onVisibleChanged: {
                                     if (jsonFile.rawValue === "" && ScreenTools.isMobile) {
@@ -270,6 +279,7 @@ Rectangle {
 
                             GridLayout {
                                 columns: 2
+                                visible: false // Hidden: Guided Command Settings
 
                                 QGCLabel {
                                     text:               qsTr("Guided Command Settings")
@@ -468,22 +478,24 @@ Rectangle {
                                     fact:                   QGroundControl.settingsManager.appSettings.defaultMissionItemAltitude
                                 }
 
-                                QGCLabel { text: qsTr("VTOL TransitionDistance") }
+                                QGCLabel { text: qsTr("VTOL TransitionDistance"); visible: false }
                                 FactTextField {
                                     Layout.preferredWidth:  _valueFieldWidth
                                     fact:                   QGroundControl.settingsManager.planViewSettings.vtolTransitionDistance
+                                    visible:                false // Hidden
                                 }
                             }
 
                             FactCheckBox {
                                 text:   qsTr("Use MAV_CMD_CONDITION_GATE for pattern generation")
                                 fact:   QGroundControl.settingsManager.planViewSettings.useConditionGate
+                                visible: false // Hidden
                             }
 
                             FactCheckBox {
                                 text:       qsTr("Missions Do Not Require Takeoff Item")
                                 fact:       _planViewSettings.takeoffItemNotRequired
-                                visible:    _planViewSettings.takeoffItemNotRequired.visible
+                                visible:    false // Hidden: _planViewSettings.takeoffItemNotRequired.visible
                             }
                         }
                     }

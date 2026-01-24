@@ -11,6 +11,7 @@
 #include "QGCApplication.h"
 #include "SettingsManager.h"
 #include "RemoteIDSettings.h"
+#include "AppSettings.h"
 #include "QGCQGeoCoordinate.h"
 #include "PositionManager.h"
 
@@ -72,6 +73,18 @@ RemoteIDManager::RemoteIDManager(Vehicle* vehicle)
         // We don't do a fresh verification because we don't store the private part of the ID.
         _operatorIDGood = true;
         operatorIDGoodChanged();
+    }
+
+    // Check if we should force-enable RID on vehicle connect
+    AppSettings* appSettings = qgcApp()->toolbox()->settingsManager()->appSettings();
+    if (appSettings->enableRIDOnConnect()->rawValue().toBool()) {
+        _available = true;
+        _commsGood = true;
+        _checkGCSBasicID();
+        _sendMessagesTimer.start();
+        emit availableChanged();
+        emit commsGoodChanged();
+        qCDebug(RemoteIDManagerLog) << "RID force-enabled on vehicle connect";
     }
 }
 

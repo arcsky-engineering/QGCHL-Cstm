@@ -84,7 +84,7 @@ SetupPage {
                         anchors.margins:    _margins
                         anchors.left:       parent.left
                         anchors.baseline:   throttleEnableCombo.baseline
-                        text:               qsTr("Throttle failsafe:")
+                        text:               qsTr("Radio failsafe:")
                     }
 
                     FactComboBox {
@@ -92,26 +92,27 @@ SetupPage {
                         anchors.topMargin:  _margins
                         anchors.left:       gcsEnableCombo.left
                         anchors.top:        gcsEnableCombo.bottom
-                        width:              throttlePWMField.width
+                        width:              gcsEnableCombo.width
                         fact:               _failsafeThrEnable
                         indexModel:         false
                     }
 
-                    QGCLabel {
-                        id:                 throttlePWMLabel
-                        anchors.margins:    _margins
-                        anchors.left:       parent.left
-                        anchors.baseline:   throttlePWMField.baseline
-                        text:               qsTr("PWM threshold:")
-                    }
+                    // Hidden: PWM threshold
+                    // QGCLabel {
+                    //     id:                 throttlePWMLabel
+                    //     anchors.margins:    _margins
+                    //     anchors.left:       parent.left
+                    //     anchors.baseline:   throttlePWMField.baseline
+                    //     text:               qsTr("PWM threshold:")
+                    // }
 
-                    FactTextField {
+                    Item {
                         id:                 throttlePWMField
                         anchors.topMargin:  _margins / 2
                         anchors.left:       gcsEnableCombo.left
                         anchors.top:        throttleEnableCombo.bottom
-                        fact:               _failsafeThrValue
-                        showUnits:          true
+                        width:              gcsEnableCombo.width
+                        height:             1
                     }
 
                     QGCLabel {
@@ -126,7 +127,7 @@ SetupPage {
                         id:                 crashCheckCombo
                         anchors.topMargin:  _margins
                         anchors.left:       gcsEnableCombo.left
-                        anchors.top:        throttlePWMField.bottom
+                        anchors.top:        throttleEnableCombo.bottom
                         width:              throttlePWMField.width
                         model:              [qsTr("Disabled"), qsTr("Hold"), qsTr("Hold and Disarm")]
                         currentIndex:       _failsafeCrashCheck.value

@@ -249,7 +249,7 @@ SetupPage {
                                 Layout.fillWidth:   true
                             }
 
-                            QGCLabel { text: qsTr("Throttle failsafe:") }
+                            QGCLabel { text: qsTr("Radio failsafe:") }
                             QGCComboBox {
                                 model:              [qsTr("Disabled"), qsTr("Always RTL"),
                                     qsTr("Continue with Mission in Auto Mode"), qsTr("Always Land")]
@@ -259,12 +259,13 @@ SetupPage {
                                 onActivated: _failsafeThrEnable.value = index
                             }
 
-                            QGCLabel { text: qsTr("PWM threshold:") }
-                            FactTextField {
-                                fact:               _failsafeThrValue
-                                showUnits:          true
-                                Layout.fillWidth:   true
-                            }
+                            // Hidden: PWM threshold
+                            // QGCLabel { text: qsTr("PWM threshold:") }
+                            // FactTextField {
+                            //     fact:               _failsafeThrValue
+                            //     showUnits:          true
+                            //     Layout.fillWidth:   true
+                            // }
                         } // GridLayout
                     } // Column
                 } // Rectangle - Failsafe Settings
@@ -447,21 +448,29 @@ SetupPage {
                         anchors.topMargin:  _margins
                         anchors.left:       returnAtCurrentRadio.left
                         anchors.top:        returnAtCurrentRadio.bottom
-                        text:               qsTr("Return at specified altitude:")
+                        text:               qsTr("Return at specified altitude (m):")
                         exclusiveGroup:     returnAltRadioGroup
                         checked:            _rtlAltFact.value != 0
 
                         onClicked: _rtlAltFact.value = 1500
                     }
 
-                    FactTextField {
+                    QGCTextField {
                         id:                 rltAltField
                         anchors.leftMargin: _margins
                         anchors.left:       returnAltRadio.right
                         anchors.baseline:   returnAltRadio.baseline
-                        fact:               _rtlAltFact
-                        showUnits:          true
+                        text:               (_rtlAltFact.rawValue / 100).toFixed(1)
+                        inputMethodHints:   Qt.ImhFormattedNumbersOnly
                         enabled:            returnAltRadio.checked
+
+                        onEditingFinished: {
+                            var value = parseFloat(text)
+                            if (isNaN(value)) value = 0
+                            value = Math.max(0, Math.min(80, value))
+                            _rtlAltFact.rawValue = Math.round(value * 100)
+                            text = value.toFixed(1)
+                        }
                     }
 
                     QGCCheckBox {
@@ -488,41 +497,57 @@ SetupPage {
                         id:                 landRadio
                         anchors.left:       returnAtCurrentRadio.left
                         anchors.baseline:   landSpeedField.baseline
-                        text:               qsTr("Land with descent speed:")
+                        text:               qsTr("Land with descent speed (m/s):")
                         checked:            _rtlAltFinalFact.value == 0
                         exclusiveGroup:     landLoiterRadioGroup
 
                         onClicked: _rtlAltFinalFact.value = 0
                     }
 
-                    FactTextField {
+                    QGCTextField {
                         id:                 landSpeedField
                         anchors.topMargin:  _margins * 1.5
                         anchors.top:        landDelayField.bottom
                         anchors.left:       rltAltField.left
-                        fact:               _landSpeedFact
-                        showUnits:          true
+                        text:               (_landSpeedFact.rawValue / 100).toFixed(1)
+                        inputMethodHints:   Qt.ImhFormattedNumbersOnly
                         enabled:            landRadio.checked
+
+                        onEditingFinished: {
+                            var value = parseFloat(text)
+                            if (isNaN(value)) value = 0
+                            value = Math.max(0.1, Math.min(5, value))
+                            _landSpeedFact.rawValue = Math.round(value * 100)
+                            text = value.toFixed(1)
+                        }
                     }
 
                     QGCRadioButton {
                         id:                 finalLoiterRadio
                         anchors.left:       returnAtCurrentRadio.left
                         anchors.baseline:   rltAltFinalField.baseline
-                        text:               qsTr("Final loiter altitude:")
+                        text:               qsTr("Final loiter altitude (m):")
                         exclusiveGroup:     landLoiterRadioGroup
 
                         onClicked: _rtlAltFinalFact.value = _rtlAltFact.value
                     }
 
-                    FactTextField {
+                    QGCTextField {
                         id:                 rltAltFinalField
                         anchors.topMargin:  _margins / 2
                         anchors.left:       rltAltField.left
                         anchors.top:        landSpeedField.bottom
-                        fact:               _rtlAltFinalFact
+                        text:               (_rtlAltFinalFact.rawValue / 100).toFixed(1)
+                        inputMethodHints:   Qt.ImhFormattedNumbersOnly
                         enabled:            finalLoiterRadio.checked
-                        showUnits:          true
+
+                        onEditingFinished: {
+                            var value = parseFloat(text)
+                            if (isNaN(value)) value = 0
+                            value = Math.max(0, Math.min(80, value))
+                            _rtlAltFinalFact.rawValue = Math.round(value * 100)
+                            text = value.toFixed(1)
+                        }
                     }
                 } // Rectangle - RTL Settings
             } // Column - RTL Settings
