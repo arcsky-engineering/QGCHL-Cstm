@@ -28,6 +28,18 @@ Item {
     property bool showIndicator: _activeVehicle ? true : false
 
     property var  _activeVehicle:   QGroundControl.multiVehicleManager.activeVehicle
+    property var  _unitsConversion: QGroundControl.unitsConversion
+
+    // Helper functions for unit conversion (cm <-> user preferred vertical distance units)
+    function cmToDisplayUnits(cm) {
+        var meters = cm / 100.0
+        return _unitsConversion.metersToAppSettingsVerticalDistanceUnits(meters)
+    }
+
+    function displayUnitsToCm(displayValue) {
+        var meters = _unitsConversion.appSettingsVerticalDistanceUnitsToMeters(displayValue)
+        return meters * 100.0
+    }
 
     Component {
         id: quickSettingsPopup
@@ -89,10 +101,10 @@ Item {
                         }
                     }
 
-                    QGCLabel { text: qsTr("RTL Altitude (m):") }
+                    QGCLabel { text: qsTr("RTL Altitude (%1):").arg(_unitsConversion.appSettingsVerticalDistanceUnitsString) }
                     QGCTextField {
                         id: rtlAltField
-                        text: rtlAltFact ? (rtlAltFact.rawValue / 100).toFixed(1) : "--"
+                        text: rtlAltFact ? cmToDisplayUnits(rtlAltFact.rawValue).toFixed(1) : "--"
                         inputMethodHints: Qt.ImhFormattedNumbersOnly
                         Layout.minimumWidth: ScreenTools.defaultFontPixelWidth * 10
 
@@ -100,8 +112,10 @@ Item {
                             if (!rtlAltFact) return
                             var value = parseFloat(text)
                             if (isNaN(value)) value = 0
-                            value = Math.max(0, Math.min(300, value))
-                            rtlAltFact.rawValue = Math.round(value * 100)
+                            // Clamp value in display units (equivalent to 0-300m)
+                            var maxInDisplayUnits = _unitsConversion.metersToAppSettingsVerticalDistanceUnits(300)
+                            value = Math.max(0, Math.min(maxInDisplayUnits, value))
+                            rtlAltFact.rawValue = Math.round(displayUnitsToCm(value))
                             text = value.toFixed(1)
                         }
                     }

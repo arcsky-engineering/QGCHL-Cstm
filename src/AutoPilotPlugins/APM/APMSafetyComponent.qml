@@ -12,6 +12,7 @@ import QtQuick.Controls     1.2
 import QtGraphicalEffects   1.0
 import QtQuick.Layouts      1.2
 
+import QGroundControl               1.0
 import QGroundControl.FactSystem    1.0
 import QGroundControl.FactControls  1.0
 import QGroundControl.Palette       1.0
@@ -21,6 +22,19 @@ import QGroundControl.ScreenTools   1.0
 SetupPage {
     id:             safetyPage
     pageComponent:  safetyPageComponent
+
+    // Unit conversion helpers for cm <-> user preferred vertical distance units
+    property var _unitsConversion: QGroundControl.unitsConversion
+
+    function cmToDisplayUnits(cm) {
+        var meters = cm / 100.0
+        return _unitsConversion.metersToAppSettingsVerticalDistanceUnits(meters)
+    }
+
+    function displayUnitsToCm(displayValue) {
+        var meters = _unitsConversion.appSettingsVerticalDistanceUnitsToMeters(displayValue)
+        return meters * 100.0
+    }
 
     Component {
         id: safetyPageComponent
@@ -530,6 +544,7 @@ SetupPage {
             }
 
             Loader {
+                visible: false // Hide GeoFence section
                 sourceComponent: controller.vehicle.multiRotor ? copterGeoFence : undefined
             }
 
@@ -593,7 +608,7 @@ SetupPage {
                             anchors.topMargin:  _innerMargin
                             anchors.top:        returnAtCurrentRadio.bottom
                             anchors.left:       returnAtCurrentRadio.left
-                            text:               qsTr("Return at specified altitude (m):")
+                            text:               qsTr("Return at specified altitude (%1):").arg(_unitsConversion.appSettingsVerticalDistanceUnitsString)
                             checked:            _rtlAltFact.value != 0
 
                             onClicked: _rtlAltFact.value = 1500
@@ -604,16 +619,23 @@ SetupPage {
                             anchors.leftMargin: _margins
                             anchors.left:       returnAltRadio.right
                             anchors.baseline:   returnAltRadio.baseline
-                            text:               (_rtlAltFact.rawValue / 100).toFixed(1)
+                            text:               cmToDisplayUnits(_rtlAltFact.rawValue).toFixed(1)
                             inputMethodHints:   Qt.ImhFormattedNumbersOnly
                             enabled:            returnAltRadio.checked
 
                             onEditingFinished: {
                                 var value = parseFloat(text)
                                 if (isNaN(value)) value = 0
-                                value = Math.max(0, Math.min(80, value))
-                                _rtlAltFact.rawValue = Math.round(value * 100)
+                                // Clamp in display units (equivalent to 0-80m)
+                                var maxInDisplayUnits = _unitsConversion.metersToAppSettingsVerticalDistanceUnits(80)
+                                value = Math.max(0, Math.min(maxInDisplayUnits, value))
+                                _rtlAltFact.rawValue = Math.round(displayUnitsToCm(value))
                                 text = value.toFixed(1)
+                            }
+
+                            Connections {
+                                target: _rtlAltFact
+                                onValueChanged: rltAltField.text = cmToDisplayUnits(_rtlAltFact.rawValue).toFixed(1)
                             }
                         }
 
@@ -640,7 +662,7 @@ SetupPage {
                         QGCLabel {
                             anchors.left:       returnAtCurrentRadio.left
                             anchors.baseline:   rltAltFinalField.baseline
-                            text:               qsTr("Final land stage altitude (m):")
+                            text:               qsTr("Final land stage altitude (%1):").arg(_unitsConversion.appSettingsVerticalDistanceUnitsString)
                         }
 
                         QGCTextField {
@@ -648,15 +670,22 @@ SetupPage {
                             anchors.topMargin:  _innerMargin
                             anchors.left:       rltAltField.left
                             anchors.top:        landDelayField.bottom
-                            text:               (_rtlAltFinalFact.rawValue / 100).toFixed(1)
+                            text:               cmToDisplayUnits(_rtlAltFinalFact.rawValue).toFixed(1)
                             inputMethodHints:   Qt.ImhFormattedNumbersOnly
 
                             onEditingFinished: {
                                 var value = parseFloat(text)
                                 if (isNaN(value)) value = 0
-                                value = Math.max(0, Math.min(80, value))
-                                _rtlAltFinalFact.rawValue = Math.round(value * 100)
+                                // Clamp in display units (equivalent to 0-80m)
+                                var maxInDisplayUnits = _unitsConversion.metersToAppSettingsVerticalDistanceUnits(80)
+                                value = Math.max(0, Math.min(maxInDisplayUnits, value))
+                                _rtlAltFinalFact.rawValue = Math.round(displayUnitsToCm(value))
                                 text = value.toFixed(1)
+                            }
+
+                            Connections {
+                                target: _rtlAltFinalFact
+                                onValueChanged: rltAltFinalField.text = cmToDisplayUnits(_rtlAltFinalFact.rawValue).toFixed(1)
                             }
                         }
 
@@ -724,7 +753,7 @@ SetupPage {
                             anchors.topMargin:  _margins / 2
                             anchors.left:       returnAtCurrentRadio.left
                             anchors.top:        returnAtCurrentRadio.bottom
-                            text:               qsTr("Return at specified altitude (m):")
+                            text:               qsTr("Return at specified altitude (%1):").arg(_unitsConversion.appSettingsVerticalDistanceUnitsString)
                             checked:            _rtlAltFact.value >= 0
 
                             onClicked: _rtlAltFact.value = 10000
@@ -735,16 +764,23 @@ SetupPage {
                             anchors.leftMargin: _margins
                             anchors.left:       returnAltRadio.right
                             anchors.baseline:   returnAltRadio.baseline
-                            text:               _rtlAltFact.value >= 0 ? (_rtlAltFact.rawValue / 100).toFixed(1) : "--"
+                            text:               _rtlAltFact.value >= 0 ? cmToDisplayUnits(_rtlAltFact.rawValue).toFixed(1) : "--"
                             inputMethodHints:   Qt.ImhFormattedNumbersOnly
                             enabled:            returnAltRadio.checked
 
                             onEditingFinished: {
                                 var value = parseFloat(text)
                                 if (isNaN(value)) value = 0
-                                value = Math.max(0, Math.min(300, value))
-                                _rtlAltFact.rawValue = Math.round(value * 100)
+                                // Clamp in display units (equivalent to 0-300m)
+                                var maxInDisplayUnits = _unitsConversion.metersToAppSettingsVerticalDistanceUnits(300)
+                                value = Math.max(0, Math.min(maxInDisplayUnits, value))
+                                _rtlAltFact.rawValue = Math.round(displayUnitsToCm(value))
                                 text = value.toFixed(1)
+                            }
+
+                            Connections {
+                                target: _rtlAltFact
+                                onValueChanged: rltAltField.text = _rtlAltFact.value >= 0 ? cmToDisplayUnits(_rtlAltFact.rawValue).toFixed(1) : "--"
                             }
                         }
                     } // Rectangle - RTL Settings
