@@ -421,8 +421,8 @@ SetupPage {
 
                 Rectangle {
                     id:     rtlSettings
-                    width:  rltAltFinalField.x + rltAltFinalField.width + _margins
-                    height: rltAltFinalField.y + rltAltFinalField.height + _margins
+                    width:  rltAltField.x + rltAltField.width + _margins
+                    height: Math.max(rltAltField.y + rltAltField.height + _margins, _showIcon ? (icon.height + _margins * 2) : 0)
                     color:  ggcPal.windowShade
 
                     Image {
@@ -495,89 +495,7 @@ SetupPage {
                         }
                     }
 
-                    QGCCheckBox {
-                        id:                 homeLoiterCheckbox
-                        anchors.left:       returnAtCurrentRadio.left
-                        anchors.baseline:   landDelayField.baseline
-                        checked:            _rtlLoitTimeFact.value > 0
-                        text:               qsTr("Loiter above Home for:")
-
-                        onClicked: _rtlLoitTimeFact.value = (checked ? 60 : 0)
-                    }
-
-                    FactTextField {
-                        id:                 landDelayField
-                        anchors.topMargin:  _margins * 1.5
-                        anchors.left:       rltAltField.left
-                        anchors.top:        rltAltField.bottom
-                        fact:               _rtlLoitTimeFact
-                        showUnits:          true
-                        enabled:            homeLoiterCheckbox.checked === true
-                    }
-
-                    QGCRadioButton {
-                        id:                 landRadio
-                        anchors.left:       returnAtCurrentRadio.left
-                        anchors.baseline:   landSpeedField.baseline
-                        text:               qsTr("Land with descent speed (m/s):")
-                        checked:            _rtlAltFinalFact.value == 0
-                        exclusiveGroup:     landLoiterRadioGroup
-
-                        onClicked: _rtlAltFinalFact.value = 0
-                    }
-
-                    QGCTextField {
-                        id:                 landSpeedField
-                        anchors.topMargin:  _margins * 1.5
-                        anchors.top:        landDelayField.bottom
-                        anchors.left:       rltAltField.left
-                        text:               (_landSpeedFact.rawValue / 100).toFixed(1)
-                        inputMethodHints:   Qt.ImhFormattedNumbersOnly
-                        enabled:            landRadio.checked
-
-                        onEditingFinished: {
-                            var value = parseFloat(text)
-                            if (isNaN(value)) value = 0
-                            value = Math.max(0.1, Math.min(5, value))
-                            _landSpeedFact.rawValue = Math.round(value * 100)
-                            text = value.toFixed(1)
-                        }
-                    }
-
-                    QGCRadioButton {
-                        id:                 finalLoiterRadio
-                        anchors.left:       returnAtCurrentRadio.left
-                        anchors.baseline:   rltAltFinalField.baseline
-                        text:               qsTr("Final loiter altitude (%1):").arg(_unitsConversion.appSettingsVerticalDistanceUnitsString)
-                        exclusiveGroup:     landLoiterRadioGroup
-
-                        onClicked: _rtlAltFinalFact.value = _rtlAltFact.value
-                    }
-
-                    QGCTextField {
-                        id:                 rltAltFinalField
-                        anchors.topMargin:  _margins / 2
-                        anchors.left:       rltAltField.left
-                        anchors.top:        landSpeedField.bottom
-                        text:               cmToDisplayUnits(_rtlAltFinalFact.rawValue).toFixed(1)
-                        inputMethodHints:   Qt.ImhFormattedNumbersOnly
-                        enabled:            finalLoiterRadio.checked
-
-                        onEditingFinished: {
-                            var value = parseFloat(text)
-                            if (isNaN(value)) value = 0
-                            // Clamp in display units (equivalent to 0-80m)
-                            var maxInDisplayUnits = _unitsConversion.metersToAppSettingsVerticalDistanceUnits(80)
-                            value = Math.max(0, Math.min(maxInDisplayUnits, value))
-                            _rtlAltFinalFact.rawValue = Math.round(displayUnitsToCm(value))
-                            text = value.toFixed(1)
-                        }
-
-                        Connections {
-                            target: _rtlAltFinalFact
-                            onValueChanged: rltAltFinalField.text = cmToDisplayUnits(_rtlAltFinalFact.rawValue).toFixed(1)
-                        }
-                    }
+                    // Hidden: Loiter above Home, Land with descent speed, Final loiter altitude
                 } // Rectangle - RTL Settings
             } // Column - RTL Settings
 

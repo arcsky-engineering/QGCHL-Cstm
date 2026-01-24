@@ -567,8 +567,8 @@ SetupPage {
 
                     Rectangle {
                         id:     rtlSettings
-                        width:  landSpeedField.x + landSpeedField.width + _margins
-                        height: landSpeedField.y + landSpeedField.height + _margins
+                        width:  rltAltField.x + rltAltField.width + _margins
+                        height: Math.max(rltAltField.y + rltAltField.height + _margins, _showIcon ? (icon.height + _margins * 2) : 0)
                         color:  ggcPal.windowShade
 
                         Image {
@@ -639,78 +639,7 @@ SetupPage {
                             }
                         }
 
-                        QGCCheckBox {
-                            id:                 homeLoiterCheckbox
-                            anchors.left:       returnAtCurrentRadio.left
-                            anchors.baseline:   landDelayField.baseline
-                            checked:            _rtlLoitTimeFact.value > 0
-                            text:               qsTr("Loiter above Home for:")
-
-                            onClicked: _rtlLoitTimeFact.value = (checked ? 60 : 0)
-                        }
-
-                        FactTextField {
-                            id:                 landDelayField
-                            anchors.topMargin:  _innerMargin
-                            anchors.left:       rltAltField.left
-                            anchors.top:        rltAltField.bottom
-                            fact:               _rtlLoitTimeFact
-                            showUnits:          true
-                            enabled:            homeLoiterCheckbox.checked === true
-                        }
-
-                        QGCLabel {
-                            anchors.left:       returnAtCurrentRadio.left
-                            anchors.baseline:   rltAltFinalField.baseline
-                            text:               qsTr("Final land stage altitude (%1):").arg(_unitsConversion.appSettingsVerticalDistanceUnitsString)
-                        }
-
-                        QGCTextField {
-                            id:                 rltAltFinalField
-                            anchors.topMargin:  _innerMargin
-                            anchors.left:       rltAltField.left
-                            anchors.top:        landDelayField.bottom
-                            text:               cmToDisplayUnits(_rtlAltFinalFact.rawValue).toFixed(1)
-                            inputMethodHints:   Qt.ImhFormattedNumbersOnly
-
-                            onEditingFinished: {
-                                var value = parseFloat(text)
-                                if (isNaN(value)) value = 0
-                                // Clamp in display units (equivalent to 0-80m)
-                                var maxInDisplayUnits = _unitsConversion.metersToAppSettingsVerticalDistanceUnits(80)
-                                value = Math.max(0, Math.min(maxInDisplayUnits, value))
-                                _rtlAltFinalFact.rawValue = Math.round(displayUnitsToCm(value))
-                                text = value.toFixed(1)
-                            }
-
-                            Connections {
-                                target: _rtlAltFinalFact
-                                onValueChanged: rltAltFinalField.text = cmToDisplayUnits(_rtlAltFinalFact.rawValue).toFixed(1)
-                            }
-                        }
-
-                        QGCLabel {
-                            anchors.left:       returnAtCurrentRadio.left
-                            anchors.baseline:   landSpeedField.baseline
-                            text:               qsTr("Final land stage descent speed (m/s):")
-                        }
-
-                        QGCTextField {
-                            id:                 landSpeedField
-                            anchors.topMargin: _innerMargin
-                            anchors.left:       rltAltField.left
-                            anchors.top:        rltAltFinalField.bottom
-                            text:               (_landSpeedFact.rawValue / 100).toFixed(1)
-                            inputMethodHints:   Qt.ImhFormattedNumbersOnly
-
-                            onEditingFinished: {
-                                var value = parseFloat(text)
-                                if (isNaN(value)) value = 0
-                                value = Math.max(0.1, Math.min(5, value))
-                                _landSpeedFact.rawValue = Math.round(value * 100)
-                                text = value.toFixed(1)
-                            }
-                        }
+                        // Hidden: Loiter above Home, Final land stage altitude, Final land stage descent speed
                     } // Rectangle - RTL Settings
                 } // Column - RTL Settings
             }
