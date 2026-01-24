@@ -90,7 +90,7 @@ private:
     bool        _sdCardPresent       = true;   // Assume present until we know otherwise
     int         _zoom                = 0;
     int         _gain                = 130;    // Default gain per OFIL docs
-    int         _uvColor             = 0;      // UV color palette (0-15, where 0-7 are opaque, 8-15 are transparent)
+    int         _uvColor             = 0;      // UV color palette (0-7)
     int         _keepaliveMisses     = 0;
     bool        _pendingVideoStart   = false;  // Track if we're waiting for video start confirmation
     bool        _pendingVideoStop    = false;  // Track if we're waiting for video stop confirmation

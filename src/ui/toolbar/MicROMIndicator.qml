@@ -347,7 +347,7 @@ Item {
                         }
 
                         QGCLabel {
-                            property int colorIndex: _micromController ? (_micromController.uvColor % 8) : 0
+                            property int colorIndex: _micromController ? _micromController.uvColor : 0
                             text:                   uvColorLayout.getUVColorName(colorIndex)
                             Layout.fillWidth:       true
                             horizontalAlignment:    Text.AlignRight
@@ -359,7 +359,7 @@ Item {
                         from:                   0
                         to:                     7
                         stepSize:               1
-                        value:                  _micromController ? (_micromController.uvColor % 8) : 0
+                        value:                  _micromController ? _micromController.uvColor : 0
                         Layout.preferredWidth:  _sliderWidth
                         Layout.preferredHeight: ScreenTools.defaultFontPixelHeight * 2
                         enabled:                _micromController && _micromController.connected
@@ -414,27 +414,7 @@ Item {
 
                         onPressedChanged: {
                             if (!pressed && _micromController) {
-                                var colorValue = value + (transparencyToggle.checked ? 8 : 0)
-                                _micromController.setUVColor(colorValue)
-                            }
-                        }
-                    }
-
-                    // Transparency toggle
-                    RowLayout {
-                        spacing: ScreenTools.defaultFontPixelWidth
-                        Layout.fillWidth: true
-
-                        QGCCheckBox {
-                            id:         transparencyToggle
-                            text:       qsTr("Transparent overlay")
-                            checked:    _micromController ? (_micromController.uvColor >= 8) : false
-                            enabled:    _micromController && _micromController.connected
-                            onClicked: {
-                                if (_micromController) {
-                                    var colorValue = uvColorSlider.value + (checked ? 8 : 0)
-                                    _micromController.setUVColor(colorValue)
-                                }
+                                _micromController.setUVColor(value)
                             }
                         }
                     }

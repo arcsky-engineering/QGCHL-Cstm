@@ -174,9 +174,9 @@ Rectangle {
                 }
             }
 
-            // ----------------------------------------- GPS GCS -------------------------------------------
+            // ----------------------------------------- OPERATOR LOCATION -------------------------------------------
             QGCLabel {
-                text:               qsTr("GCS Location")
+                text:               qsTr("Operator Location")
                 Layout.alignment:   Qt.AlignHCenter
                 font.pointSize:     ScreenTools.mediumFontPointSize
             }
@@ -199,58 +199,117 @@ Rectangle {
                     columns:                    2
                     columnSpacing:              _margins * 2
 
+                    // Location Type dropdown
+                    QGCLabel {
+                        text:               qsTr("Location Type:")
+                        Layout.fillWidth:   true
+                    }
+                    FactComboBox {
+                        id:                     locationTypeCombo
+                        fact:                   QGroundControl.settingsManager.remoteIDSettings.locationType
+                        indexModel:             false
+                        Layout.preferredWidth:  _comboFieldWidth
+                    }
+
+                    // Fixed location fields (visible when Fixed is selected, value = 2)
+                    QGCLabel {
+                        text:               qsTr("Latitude (-90 to 90):")
+                        visible:            _locationType === 2
+                        Layout.fillWidth:   true
+                    }
+                    FactTextField {
+                        visible:            _locationType === 2
+                        Layout.fillWidth:   true
+                        fact:               QGroundControl.settingsManager.remoteIDSettings.latitudeFixed
+                    }
+
+                    QGCLabel {
+                        text:               qsTr("Longitude (-180 to 180):")
+                        visible:            _locationType === 2
+                        Layout.fillWidth:   true
+                    }
+                    FactTextField {
+                        visible:            _locationType === 2
+                        Layout.fillWidth:   true
+                        fact:               QGroundControl.settingsManager.remoteIDSettings.longitudeFixed
+                    }
+
+                    QGCLabel {
+                        text:               qsTr("Altitude (m):")
+                        visible:            _locationType === 2
+                        Layout.fillWidth:   true
+                    }
+                    FactTextField {
+                        visible:            _locationType === 2
+                        Layout.fillWidth:   true
+                        fact:               QGroundControl.settingsManager.remoteIDSettings.altitudeFixed
+                    }
+
+                    // Live GNSS fields (visible when Live GNSS is selected, value = 1)
                     QGCLabel {
                         text:               qsTr("Status:")
+                        visible:            _locationType === 1
                         Layout.fillWidth:   true
                     }
                     QGCLabel {
                         text:               gcsPosition.isValid ? qsTr("Live GNSS Active") : qsTr("Waiting for GPS fix...")
                         color:              gcsPosition.isValid ? qgcPal.colorGreen : qgcPal.colorOrange
+                        visible:            _locationType === 1
                         Layout.fillWidth:   true
                     }
 
                     QGCLabel {
                         text:               qsTr("Latitude:")
+                        visible:            _locationType === 1
                         Layout.fillWidth:   true
                     }
                     QGCLabel {
                         text:               gcsPosition.isValid ? gcsPosition.latitude.toFixed(7) : "N/A"
+                        visible:            _locationType === 1
                         Layout.fillWidth:   true
                     }
 
                     QGCLabel {
                         text:               qsTr("Longitude:")
+                        visible:            _locationType === 1
                         Layout.fillWidth:   true
                     }
                     QGCLabel {
                         text:               gcsPosition.isValid ? gcsPosition.longitude.toFixed(7) : "N/A"
+                        visible:            _locationType === 1
                         Layout.fillWidth:   true
                     }
 
                     QGCLabel {
                         text:               qsTr("Altitude:")
+                        visible:            _locationType === 1
                         Layout.fillWidth:   true
                     }
                     QGCLabel {
                         text:               gcsPosition.isValid && !isNaN(gcsPosition.altitude) ? gcsPosition.altitude.toFixed(1) + " m" : "N/A"
+                        visible:            _locationType === 1
                         Layout.fillWidth:   true
                     }
 
                     QGCLabel {
                         text:               qsTr("Heading:")
+                        visible:            _locationType === 1
                         Layout.fillWidth:   true
                     }
                     QGCLabel {
                         text:               gcsPosition.isValid && !isNaN(gcsHeading) ? gcsHeading.toFixed(1) + "\u00B0" : "N/A"
+                        visible:            _locationType === 1
                         Layout.fillWidth:   true
                     }
 
                     QGCLabel {
                         text:               qsTr("Accuracy:")
+                        visible:            _locationType === 1
                         Layout.fillWidth:   true
                     }
                     QGCLabel {
                         text:               gcsPosition.isValid && gcsHDOP ? gcsHDOP.toFixed(1) + " m" : "N/A"
+                        visible:            _locationType === 1
                         Layout.fillWidth:   true
                     }
                 }
@@ -290,7 +349,7 @@ Rectangle {
             QGCLabel {
                 text:               _locationType === 1 ?
                                     qsTr("Operator location is automatically sent to the vehicle\nusing Live GNSS from your device.") :
-                                    qsTr("Using fixed operator location.\nSet coordinates in Remote ID settings if needed.")
+                                    qsTr("Using fixed operator location coordinates entered above.")
                 Layout.alignment:   Qt.AlignHCenter
                 horizontalAlignment: Text.AlignHCenter
                 font.pointSize:     ScreenTools.smallFontPointSize

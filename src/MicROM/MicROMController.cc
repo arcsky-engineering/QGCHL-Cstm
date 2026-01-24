@@ -105,7 +105,7 @@ void MicROMController::setGain(int value)
 void MicROMController::setUVColor(int value)
 {
     if (value < 0) value = 0;
-    if (value > 15) value = 15;
+    if (value > 7) value = 7;
 
     qDebug() << "MicROMController: Setting UV color palette to" << value;
     _sendCommand(QString("IC_UVCS%1").arg(value));
@@ -240,7 +240,7 @@ void MicROMController::_parseResponse(const QByteArray& data)
         QString suffix = response.mid(7);  // Both have 7 character prefix
         bool ok;
         int value = suffix.toInt(&ok);
-        if (ok && value >= 0 && value <= 15) {
+        if (ok && value >= 0 && value <= 7) {
             if (_uvColor != value) {
                 _uvColor = value;
                 emit uvColorChanged();

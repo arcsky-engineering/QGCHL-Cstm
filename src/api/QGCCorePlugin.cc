@@ -452,8 +452,6 @@ const QVariantList& QGCCorePlugin::toolBarIndicators(void)
         _toolBarIndicatorList = QVariantList({
                                                  QVariant::fromValue(QUrl::fromUserInput("qrc:/toolbar/GPSRTKIndicator.qml")),
                                              });
-        // Add QuickSettingsIndicator at the end (after vehicle-specific indicators)
-        _toolBarIndicatorList.append(QVariant::fromValue(QUrl::fromUserInput("qrc:/toolbar/QuickSettingsIndicator.qml")));
     }
     return _toolBarIndicatorList;
 }
