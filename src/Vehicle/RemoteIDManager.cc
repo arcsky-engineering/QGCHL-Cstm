@@ -325,9 +325,11 @@ void RemoteIDManager::_sendSystem()
                 }
             }
         } else {
-            _gcsGPSGood = false;
-            emit gcsGPSGoodChanged();
-            qCDebug(RemoteIDManagerLog) << "GCS GPS data is not valid.";
+            if (_gcsGPSGood) {
+                _gcsGPSGood = false;
+                emit gcsGPSGoodChanged();
+                qCDebug(RemoteIDManagerLog) << "GCS GPS data is not valid.";
+            }
         }
 
     }
