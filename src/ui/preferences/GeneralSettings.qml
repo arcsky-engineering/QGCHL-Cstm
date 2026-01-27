@@ -626,13 +626,13 @@ Rectangle {
 
                                 QGCLabel {
                                     text:                   qsTr("Stream GCS Position")
-                                    visible:                _followTarget.visible
+                                    visible:                false // Hidden: _followTarget.visible
                                 }
                                 FactComboBox {
                                     Layout.preferredWidth:  _comboFieldWidth
                                     fact:                   _followTarget
                                     indexModel:             false
-                                    visible:                _followTarget.visible
+                                    visible:                false // Hidden: _followTarget.visible
                                 }
                                 QGCLabel {
                                     text:                           qsTr("UI Scaling")

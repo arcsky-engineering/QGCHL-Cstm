@@ -353,7 +353,7 @@
     "shortDesc":        "Enable Remote ID on vehicle connect",
     "longDesc":         "When enabled, Remote ID messages will be sent immediately on vehicle connection without waiting for the RID device to respond first.",
     "type":             "bool",
-    "default":          false
+    "default":          true
 }
 ]
 }
