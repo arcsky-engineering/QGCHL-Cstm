@@ -1536,17 +1536,15 @@ void Vehicle::_handleBatteryStatus(mavlink_message_t& message)
         }
         break;
     case MAV_BATTERY_CHARGE_STATE_UNHEALTHY:
-        if (batteryStatus.charge_state > _lowestBatteryChargeStateAnnouncedMap[batteryStatus.id]) {
-            _lowestBatteryChargeStateAnnouncedMap[batteryStatus.id] = batteryStatus.charge_state;
-            batteryMessage = tr("battery %1 unhealthy");
-        }
+        // Unhealthy warning disabled - just track state without announcing
+        _lowestBatteryChargeStateAnnouncedMap[batteryStatus.id] = batteryStatus.charge_state;
         break;
     }
 
     if (!batteryMessage.isEmpty()) {
         QString batteryIdStr("%1");
         if (_batteryFactGroupListModel.count() > 1) {
-            batteryIdStr = batteryIdStr.arg(batteryStatus.id);
+            batteryIdStr = batteryIdStr.arg(batteryStatus.id + 1);  // 1-based battery index
         } else {
             batteryIdStr = batteryIdStr.arg("");
         }

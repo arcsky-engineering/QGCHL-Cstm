@@ -190,7 +190,7 @@ Item {
                                     property var battery: object
                                 }
 
-                                QGCLabel { text: qsTr("Bat/Gen %1").arg(object.id.rawValue) }
+                                QGCLabel { text: qsTr("Bat/Gen %1").arg(object.id.rawValue + 1) }
                                 QGCLabel { text: qsTr("Charge State");                          visible: batteryValuesAvailable.chargeStateAvailable }
                                 QGCLabel { text: qsTr("Remaining");                             visible: batteryValuesAvailable.timeRemainingAvailable }
                                 QGCLabel { text: qsTr("Remaining") }
