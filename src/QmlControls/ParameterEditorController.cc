@@ -14,75 +14,6 @@
 #include "AppSettings.h"
 
 #include <QStandardPaths>
-#include <QFile>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QRegularExpression>
-
-// Parameter whitelist for filtering what users can see in the Parameter Editor
-static bool s_whitelistLoaded = false;
-static QStringList s_parameterWhitelist;
-
-static void loadParameterWhitelist()
-{
-    if (s_whitelistLoaded) {
-        return;
-    }
-    s_whitelistLoaded = true;
-
-    QFile file(QStringLiteral(":/json/ParameterWhitelist.json"));
-    if (!file.open(QIODevice::ReadOnly)) {
-        // No whitelist file = show all parameters
-        return;
-    }
-
-    QByteArray data = file.readAll();
-    file.close();
-
-    QJsonParseError parseError;
-    QJsonDocument doc = QJsonDocument::fromJson(data, &parseError);
-    if (parseError.error != QJsonParseError::NoError) {
-        qWarning() << "Failed to parse parameter whitelist JSON:" << parseError.errorString();
-        return;
-    }
-
-    QJsonObject root = doc.object();
-    QJsonArray parameters = root.value("parameters").toArray();
-
-    for (const QJsonValue &value : parameters) {
-        s_parameterWhitelist.append(value.toString());
-    }
-}
-
-static bool parameterAllowedByWhitelist(const QString &paramName)
-{
-    loadParameterWhitelist();
-
-    // If whitelist is empty, show all parameters
-    if (s_parameterWhitelist.isEmpty()) {
-        return true;
-    }
-
-    for (const QString &pattern : s_parameterWhitelist) {
-        if (pattern.contains('*')) {
-            // Convert wildcard pattern to regex
-            QString regexPattern = QRegularExpression::escape(pattern);
-            regexPattern.replace("\\*", ".*");
-            QRegularExpression regex("^" + regexPattern + "$", QRegularExpression::CaseInsensitiveOption);
-            if (regex.match(paramName).hasMatch()) {
-                return true;
-            }
-        } else {
-            // Exact match
-            if (paramName.compare(pattern, Qt::CaseInsensitive) == 0) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
 
 ParameterEditorController::ParameterEditorController(void)
     : _parameterMgr(_vehicle->parameterManager())
@@ -107,25 +38,16 @@ ParameterEditorController::~ParameterEditorController()
 
 void ParameterEditorController::_buildListsForComponent(int compId)
 {
-    // Use a single "Parameters" category for all parameters
-    static const QString singleCategoryName = QStringLiteral("Parameters");
-
     for (const QString& factName: _parameterMgr->parameterNames(compId)) {
-        // Filter by whitelist
-        if (!parameterAllowedByWhitelist(factName)) {
-            continue;
-        }
-
         Fact* fact = _parameterMgr->getParameter(compId, factName);
 
-        // Use single category for all parameters
         ParameterEditorCategory* category = nullptr;
-        if (_mapCategoryName2Category.contains(singleCategoryName)) {
-            category = _mapCategoryName2Category[singleCategoryName];
+        if (_mapCategoryName2Category.contains(fact->category())) {
+            category = _mapCategoryName2Category[fact->category()];
         } else {
             category        = new ParameterEditorCategory(this);
-            category->name  = singleCategoryName;
-            _mapCategoryName2Category[singleCategoryName] = category;
+            category->name  = fact->category();
+            _mapCategoryName2Category[fact->category()] = category;
             _categories.append(category);
         }
 
@@ -196,23 +118,15 @@ void ParameterEditorController::_buildLists(void)
 
 void ParameterEditorController::_factAdded(int compId, Fact* fact)
 {
-    // Filter by whitelist
-    if (!parameterAllowedByWhitelist(fact->name())) {
-        return;
-    }
-
-    // Use a single "Parameters" category for all parameters
-    static const QString singleCategoryName = QStringLiteral("Parameters");
-
     bool                        inserted = false;
     ParameterEditorCategory*    category = nullptr;
 
-    if (_mapCategoryName2Category.contains(singleCategoryName)) {
-        category = _mapCategoryName2Category[singleCategoryName];
+    if (_mapCategoryName2Category.contains(fact->category())) {
+        category = _mapCategoryName2Category[fact->category()];
     } else {
         category        = new ParameterEditorCategory(this);
-        category->name  = singleCategoryName;
-        _mapCategoryName2Category[singleCategoryName] = category;
+        category->name  = fact->category();
+        _mapCategoryName2Category[fact->category()] = category;
 
         // Insert in sorted order
         inserted = false;
@@ -444,11 +358,6 @@ void ParameterEditorController::resetAllToVehicleConfiguration(void)
 
 bool ParameterEditorController::_shouldShow(Fact* fact) const
 {
-    // First check whitelist
-    if (!parameterAllowedByWhitelist(fact->name())) {
-        return false;
-    }
-
     if (!_showModifiedOnly) {
         return true;
     }
