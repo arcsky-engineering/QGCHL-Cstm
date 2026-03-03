@@ -346,7 +346,7 @@
     "shortDesc":        "Show MicROM UV Camera indicator",
     "longDesc":         "If enabled, the MicROM UV camera control indicator will be shown in the toolbar.",
     "type":             "bool",
-    "default":          true
+    "default":          false
 },
 {
     "name":             "enableRIDOnConnect",
