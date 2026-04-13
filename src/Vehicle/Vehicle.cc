@@ -1449,6 +1449,10 @@ bool Vehicle::_apmArmingNotRequired()
 
 void Vehicle::_handleSysStatus(mavlink_message_t& message)
 {
+    if (message.compid != _defaultComponentId) {
+        return;
+    }
+
     mavlink_sys_status_t sysStatus;
     mavlink_msg_sys_status_decode(&message, &sysStatus);
 

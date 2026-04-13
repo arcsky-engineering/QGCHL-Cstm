@@ -286,8 +286,10 @@ void MAVLinkProtocol::receiveBytes(LinkInterface* link, QByteArray b)
             }
 
             //-----------------------------------------------------------------
-            // Track arm/disarm state from every heartbeat, even before logging starts
-            if (_message.msgid == MAVLINK_MSG_ID_HEARTBEAT) {
+            // Track arm/disarm state from autopilot heartbeats only — non-autopilot components
+            // (e.g. camera triggers, companion computers) also send heartbeats but their base_mode
+            // does not reflect the vehicle's armed state, which would cause false arm/disarm transitions.
+            if (_message.msgid == MAVLINK_MSG_ID_HEARTBEAT && _message.compid == MAV_COMP_ID_AUTOPILOT1) {
                 mavlink_heartbeat_t state;
                 mavlink_msg_heartbeat_decode(&_message, &state);
                 bool armed = state.base_mode & MAV_MODE_FLAG_DECODE_POSITION_SAFETY;
