@@ -953,6 +953,11 @@ void Vehicle::_chunkedStatusTextCompleted(uint8_t compId)
 
     _chunkedStatusTextInfoMap.remove(compId);
 
+    // Arcsky telemetry metadata — logged to tlog but hidden from operator UI
+    if (messageText.startsWith(QStringLiteral("~"))) {
+        return;
+    }
+
     // PX4 backwards compatibility: messages sent out ending with a tab are also sent as event
     if (messageText.endsWith('\t') && px4Firmware()) {
         qCDebug(VehicleLog) << "Dropping message (expected as event):" << messageText;

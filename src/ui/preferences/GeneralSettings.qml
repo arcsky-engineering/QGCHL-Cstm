@@ -820,6 +820,14 @@ Rectangle {
                                 property Fact _telemetrySaveNotArmed: QGroundControl.settingsManager.appSettings.telemetrySaveNotArmed
                             }
                             FactCheckBox {
+                                id:         logOnConnect
+                                text:       qsTr("Start telemetry log on vehicle connect")
+                                fact:       _telemetryLogOnConnect
+                                visible:    _telemetryLogOnConnect.visible
+                                enabled:    promptSaveLog.checked && !_disableAllDataPersistence
+                                property Fact _telemetryLogOnConnect: QGroundControl.settingsManager.appSettings.telemetryLogOnConnect
+                            }
+                            FactCheckBox {
                                 id:         promptSaveCsv
                                 text:       qsTr("Save CSV log of telemetry data")
                                 fact:       _saveCsvTelemetry

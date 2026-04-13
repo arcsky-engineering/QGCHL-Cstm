@@ -55,6 +55,7 @@ MAVLinkProtocol::MAVLinkProtocol(QGCApplication* app, QGCToolbox* toolbox)
     , _logSuspendError(false)
     , _logSuspendReplay(false)
     , _vehicleWasArmed(false)
+    , _vehicleIsArmed(false)
     , _tempLogFile(QString("%2.%3").arg(_tempLogFileTemplate).arg(_logFileExtension))
     , _linkMgr(nullptr)
     , _multiVehicleManager(nullptr)
@@ -285,6 +286,23 @@ void MAVLinkProtocol::receiveBytes(LinkInterface* link, QByteArray b)
             }
 
             //-----------------------------------------------------------------
+            // Track arm/disarm state from every heartbeat, even before logging starts
+            if (_message.msgid == MAVLINK_MSG_ID_HEARTBEAT) {
+                mavlink_heartbeat_t state;
+                mavlink_msg_heartbeat_decode(&_message, &state);
+                bool armed = state.base_mode & MAV_MODE_FLAG_DECODE_POSITION_SAFETY;
+                if (armed && !_vehicleWasArmed) {
+                    _vehicleWasArmed = true;
+                }
+                if (!armed && _vehicleIsArmed && _vehicleWasArmed && _tempLogFile.isOpen()) {
+                    // armed -> disarmed transition: save this flight's log and start a new one
+                    _vehicleIsArmed = false;
+                    _rotateLogFile();
+                }
+                _vehicleIsArmed = armed;
+            }
+
+            //-----------------------------------------------------------------
             // Log data
             if (!_logSuspendError && !_logSuspendReplay && _tempLogFile.isOpen()) {
                 uint8_t buf[MAVLINK_MAX_PACKET_LEN+sizeof(quint64)];
@@ -310,33 +328,36 @@ void MAVLinkProtocol::receiveBytes(LinkInterface* link, QByteArray b)
                     _stopLogging();
                     _logSuspendError = true;
                 }
-
-                // Check for the vehicle arming going by. This is used to trigger log save.
-                if (!_vehicleWasArmed && _message.msgid == MAVLINK_MSG_ID_HEARTBEAT) {
-                    mavlink_heartbeat_t state;
-                    mavlink_msg_heartbeat_decode(&_message, &state);
-                    if (state.base_mode & MAV_MODE_FLAG_DECODE_POSITION_SAFETY) {
-                        _vehicleWasArmed = true;
-                    }
-                }
             }
 
-            if (_message.msgid == MAVLINK_MSG_ID_HEARTBEAT) {
-                _startLogging();
-                mavlink_heartbeat_t heartbeat;
-                mavlink_msg_heartbeat_decode(&_message, &heartbeat);
-                emit vehicleHeartbeatInfo(link, _message.sysid, _message.compid, heartbeat.autopilot, heartbeat.type);
-            } else if (_message.msgid == MAVLINK_MSG_ID_HIGH_LATENCY) {
-                _startLogging();
-                mavlink_high_latency_t highLatency;
-                mavlink_msg_high_latency_decode(&_message, &highLatency);
-                // HIGH_LATENCY does not provide autopilot or type information, generic is our safest bet
-                emit vehicleHeartbeatInfo(link, _message.sysid, _message.compid, MAV_AUTOPILOT_GENERIC, MAV_TYPE_GENERIC);
-            } else if (_message.msgid == MAVLINK_MSG_ID_HIGH_LATENCY2) {
-                _startLogging();
-                mavlink_high_latency2_t highLatency2;
-                mavlink_msg_high_latency2_decode(&_message, &highLatency2);
-                emit vehicleHeartbeatInfo(link, _message.sysid, _message.compid, highLatency2.autopilot, highLatency2.type);
+            // Start logging based on telemetryLogOnConnect setting:
+            // - When true (default): log opens on first heartbeat (includes pre-arm data)
+            // - When false: log opens only when vehicle is first armed
+            {
+                const bool logOnConnect = _app->toolbox()->settingsManager()->appSettings()->telemetryLogOnConnect()->rawValue().toBool();
+
+                if (_message.msgid == MAVLINK_MSG_ID_HEARTBEAT) {
+                    if (logOnConnect || _vehicleIsArmed) {
+                        _startLogging();
+                    }
+                    mavlink_heartbeat_t heartbeat;
+                    mavlink_msg_heartbeat_decode(&_message, &heartbeat);
+                    emit vehicleHeartbeatInfo(link, _message.sysid, _message.compid, heartbeat.autopilot, heartbeat.type);
+                } else if (_message.msgid == MAVLINK_MSG_ID_HIGH_LATENCY) {
+                    if (logOnConnect) {
+                        _startLogging();
+                    }
+                    mavlink_high_latency_t highLatency;
+                    mavlink_msg_high_latency_decode(&_message, &highLatency);
+                    emit vehicleHeartbeatInfo(link, _message.sysid, _message.compid, MAV_AUTOPILOT_GENERIC, MAV_TYPE_GENERIC);
+                } else if (_message.msgid == MAVLINK_MSG_ID_HIGH_LATENCY2) {
+                    if (logOnConnect) {
+                        _startLogging();
+                    }
+                    mavlink_high_latency2_t highLatency2;
+                    mavlink_msg_high_latency2_decode(&_message, &highLatency2);
+                    emit vehicleHeartbeatInfo(link, _message.sysid, _message.compid, highLatency2.autopilot, highLatency2.type);
+                }
             }
 
 #if 0
@@ -495,6 +516,21 @@ void MAVLinkProtocol::_stopLogging(void)
         }
     }
     _vehicleWasArmed = false;
+    _vehicleIsArmed = false;
+}
+
+void MAVLinkProtocol::_rotateLogFile(void)
+{
+    // Save the current log file (it contains an armed flight)
+    if (_tempLogFile.isOpen() && _closeLogFile()) {
+        emit saveTelemetryLog(_tempLogFile.fileName());
+    }
+
+    _vehicleWasArmed = false;
+    _vehicleIsArmed = false;
+
+    // Re-open immediately — open() generates a new unique filename automatically
+    _startLogging();
 }
 
 /// @brief Checks the temp directory for log files which may have been left there.

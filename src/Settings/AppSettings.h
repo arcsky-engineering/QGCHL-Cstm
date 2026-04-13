@@ -36,6 +36,7 @@ public:
     DEFINE_SETTINGFACT(defaultMissionItemAltitude)
     DEFINE_SETTINGFACT(telemetrySave)
     DEFINE_SETTINGFACT(telemetrySaveNotArmed)
+    DEFINE_SETTINGFACT(telemetryLogOnConnect)
     DEFINE_SETTINGFACT(audioMuted)
     DEFINE_SETTINGFACT(checkInternet)
     DEFINE_SETTINGFACT(virtualJoystick)
