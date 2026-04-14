@@ -207,6 +207,13 @@ Rectangle {
                             }
 
                             FactCheckBox {
+                                text:       qsTr("Disable Start Mission Confirmation Slider")
+                                fact:       _disableStartMissionSlider
+                                visible:    _disableStartMissionSlider.visible
+                                property Fact _disableStartMissionSlider: QGroundControl.settingsManager.flyViewSettings.disableStartMissionSlider
+                            }
+
+                            FactCheckBox {
                                 text:       qsTr("Update home position based on device location. This will affect return to home")
                                 fact:       _updateHomePosition
                                 visible:    _updateHomePosition.visible

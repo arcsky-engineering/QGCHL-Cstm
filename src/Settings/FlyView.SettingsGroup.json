@@ -100,6 +100,13 @@
     "longDesc":     "If enabled, a slider will be shown for guided actions like takeoff, altitude change, etc. If disabled, the action will use default values.",
     "type":         "bool",
     "default":      true
+},
+{
+    "name":         "disableStartMissionSlider",
+    "shortDesc":    "Disable start mission confirmation slider",
+    "longDesc":     "When enabled, the slide-to-confirm dialog will not automatically pop up when a mission is ready to start or continue.",
+    "type":         "bool",
+    "default":      false
 }
 ]
 }

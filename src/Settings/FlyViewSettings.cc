@@ -32,4 +32,5 @@ DECLARE_SETTINGSFACT(FlyViewSettings, updateHomePosition)
 DECLARE_SETTINGSFACT(FlyViewSettings, enableCustomActions)
 DECLARE_SETTINGSFACT(FlyViewSettings, customActionDefinitions)
 DECLARE_SETTINGSFACT(FlyViewSettings, showGuidedActionSlider)
+DECLARE_SETTINGSFACT(FlyViewSettings, disableStartMissionSlider)
 

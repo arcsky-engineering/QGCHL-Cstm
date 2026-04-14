@@ -34,7 +34,8 @@ Item {
     property var orbitMapCircle
 
     property var  _flyViewSettings:         QGroundControl.settingsManager.flyViewSettings
-    property bool _showGuidedActionSlider:  _flyViewSettings ? _flyViewSettings.showGuidedActionSlider.rawValue : true
+    property bool _showGuidedActionSlider:      _flyViewSettings ? _flyViewSettings.showGuidedActionSlider.rawValue : true
+    property bool _disableStartMissionSlider:  _flyViewSettings ? _flyViewSettings.disableStartMissionSlider.rawValue : false
 
     readonly property string emergencyStopTitle:            qsTr("EMERGENCY STOP")
     readonly property string armTitle:                      qsTr("Arm")
@@ -253,7 +254,7 @@ Item {
             console.log("showStartMission", showStartMission)
         }
         _outputState()
-        if (showStartMission) {
+        if (showStartMission && !_disableStartMissionSlider) {
             confirmAction(actionStartMission)
         }
     }
@@ -262,7 +263,7 @@ Item {
             console.log("showContinueMission", showContinueMission)
         }
         _outputState()
-        if (showContinueMission) {
+        if (showContinueMission && !_disableStartMissionSlider) {
             confirmAction(actionContinueMission)
         }
     }
@@ -415,7 +416,7 @@ Item {
             showImmediate = false
             confirmDialog.title = startMissionTitle
             confirmDialog.message = startMissionMessage
-            confirmDialog.hideTrigger = Qt.binding(function() { return !showStartMission })
+            confirmDialog.hideTrigger = Qt.binding(function() { return !showStartMission || _disableStartMissionSlider })
             break;
         case actionMVStartMission:
             confirmDialog.title = mvStartMissionTitle
@@ -426,7 +427,7 @@ Item {
             showImmediate = false
             confirmDialog.title = continueMissionTitle
             confirmDialog.message = continueMissionMessage
-            confirmDialog.hideTrigger = Qt.binding(function() { return !showContinueMission })
+            confirmDialog.hideTrigger = Qt.binding(function() { return !showContinueMission || _disableStartMissionSlider })
             break;
         case actionResumeMission:
             // Resume Mission is handled in mission end dialog

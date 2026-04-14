@@ -34,4 +34,5 @@ public:
     DEFINE_SETTINGFACT(enableCustomActions)
     DEFINE_SETTINGFACT(customActionDefinitions)
     DEFINE_SETTINGFACT(showGuidedActionSlider)
+    DEFINE_SETTINGFACT(disableStartMissionSlider)
 };

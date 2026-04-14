@@ -165,10 +165,12 @@ private:
     bool _logSuspendReplay;     ///< true: Logging suspended due to replay
     bool _vehicleWasArmed;      ///< true: Vehicle was armed during log sequence
     bool _vehicleIsArmed;       ///< true: Vehicle is currently armed (for disarm detection)
+    int  _armedHeartbeatCount;  ///< Consecutive armed heartbeats seen (debounce boot transients)
 
     QGCTemporaryFile    _tempLogFile;            ///< File to log to
     static const char*  _tempLogFileTemplate;    ///< Template for temporary log file
     static const char*  _logFileExtension;       ///< Extension for log files
+    static const int    _kMinArmedHeartbeats = 3; ///< Consecutive armed heartbeats required to confirm armed state
 
     LinkManager*            _linkMgr;
     MultiVehicleManager*    _multiVehicleManager;
