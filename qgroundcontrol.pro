@@ -699,6 +699,7 @@ HEADERS += \
     src/Settings/RTKSettings.h \
     src/Settings/SettingsGroup.h \
     src/Settings/SettingsManager.h \
+    src/Settings/TelemetryLogManager.h \
     src/Settings/UnitsSettings.h \
     src/Settings/VideoSettings.h \
     src/Settings/GimbalControllerSettings.h \
@@ -963,6 +964,7 @@ SOURCES += \
     src/Settings/RTKSettings.cc \
     src/Settings/SettingsGroup.cc \
     src/Settings/SettingsManager.cc \
+    src/Settings/TelemetryLogManager.cc \
     src/Settings/UnitsSettings.cc \
     src/Settings/VideoSettings.cc \
     src/Settings/GimbalControllerSettings.cc \

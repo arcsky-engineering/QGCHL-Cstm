@@ -101,6 +101,15 @@ public slots:
     /// Checks for lost log files
     void checkForLostLogFiles(void);
 
+    /// Start a manual log capture — saves/discards any current data and begins a fresh log.
+    void startManualCapture();
+
+    /// Stop a manual log capture — force-saves the current log regardless of arm state.
+    void stopManualCapture();
+
+    /// Whether a manual capture is currently active.
+    bool manualCaptureActive() const { return _manualCaptureActive; }
+
 protected:
     bool        m_enable_version_check;                         ///< Enable checking of version match of MAV and QGC
     uint8_t     lastIndex[256][256];                            ///< Store the last received sequence ID for each system/componenet pair
@@ -152,6 +161,8 @@ signals:
     /// Emitted when a telemetry log is started to save.
     void checkTelemetrySavePath(void);
 
+    void manualCaptureActiveChanged();
+
 private slots:
     void _vehicleCountChanged(void);
 
@@ -165,6 +176,7 @@ private:
     bool _logSuspendReplay;     ///< true: Logging suspended due to replay
     bool _vehicleWasArmed;      ///< true: Vehicle was armed during log sequence
     bool _vehicleIsArmed;       ///< true: Vehicle is currently armed (for disarm detection)
+    bool _manualCaptureActive;  ///< true: User started a manual log capture
     int  _armedHeartbeatCount;  ///< Consecutive armed heartbeats seen (debounce boot transients)
 
     QGCTemporaryFile    _tempLogFile;            ///< File to log to

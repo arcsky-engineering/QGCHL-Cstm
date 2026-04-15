@@ -845,6 +845,134 @@ Rectangle {
                         }
                     }
 
+                    Item { width: 1; height: _margins }
+                    QGCLabel {
+                        text:       telemetryLogManager.totalCount > 0
+                                        ? qsTr("Saved Telemetry Logs — %1 logs, %2 total").arg(telemetryLogManager.totalCount).arg(telemetryLogManager.totalSizeStr)
+                                        : qsTr("Saved Telemetry Logs — No logs found")
+                    }
+                    TelemetryLogManager { id: telemetryLogManager }
+                    Rectangle {
+                        Layout.fillWidth:       true
+                        Layout.preferredHeight: savedLogsCol.height + (_margins * 2)
+                        color:                  qgcPal.windowShade
+
+                        ColumnLayout {
+                            id:                         savedLogsCol
+                            anchors.margins:            _margins
+                            anchors.top:                parent.top
+                            anchors.horizontalCenter:   parent.horizontalCenter
+                            width:                      parent.width - (_margins * 2)
+                            spacing:                    _margins
+
+                            Rectangle {
+                                Layout.fillWidth:       true
+                                Layout.preferredHeight: ScreenTools.defaultFontPixelHeight * 14
+                                color:                  qgcPal.window
+                                border.color:           qgcPal.text
+                                border.width:           0.5
+                                visible:                telemetryLogManager.totalCount > 0
+
+                                QGCListView {
+                                    id:                 logListView
+                                    anchors.fill:       parent
+                                    anchors.margins:    ScreenTools.defaultFontPixelWidth
+                                    clip:               true
+                                    model:              telemetryLogManager.logFiles
+                                    spacing:            2
+
+                                    delegate: Rectangle {
+                                        width:  logListView.width
+                                        height: logEntryRow.height + ScreenTools.defaultFontPixelHeight * 0.5
+                                        color:  object.selected ? qgcPal.buttonHighlight : "transparent"
+
+                                        Row {
+                                            id:                     logEntryRow
+                                            anchors.left:           parent.left
+                                            anchors.right:          parent.right
+                                            anchors.verticalCenter: parent.verticalCenter
+                                            anchors.leftMargin:     ScreenTools.defaultFontPixelWidth
+                                            anchors.rightMargin:    ScreenTools.defaultFontPixelWidth
+                                            spacing:                ScreenTools.defaultFontPixelWidth
+
+                                            QGCCheckBox {
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                checked:    object.selected
+                                                onClicked:  object.selected = checked
+                                            }
+
+                                            QGCLabel {
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                width:      parent.width - ScreenTools.defaultFontPixelWidth * 18
+                                                text:       object.name
+                                                color:      object.selected ? qgcPal.buttonHighlightText : qgcPal.text
+                                            }
+
+                                            QGCLabel {
+                                                anchors.verticalCenter: parent.verticalCenter
+                                                width:      ScreenTools.defaultFontPixelWidth * 12
+                                                text:       object.sizeStr
+                                                color:      object.selected ? qgcPal.buttonHighlightText : qgcPal.text
+                                                horizontalAlignment: Text.AlignRight
+                                            }
+                                        }
+
+                                        MouseArea {
+                                            anchors.fill:   parent
+                                            onClicked:      object.selected = !object.selected
+                                            z:              -1
+                                        }
+                                    }
+                                }
+                            }
+
+                            QGCLabel {
+                                visible:    telemetryLogManager.totalCount === 0
+                                text:       qsTr("No telemetry logs found in save directory.")
+                            }
+
+                            Row {
+                                spacing: ScreenTools.defaultFontPixelWidth
+
+                                QGCButton {
+                                    text:       qsTr("Select All")
+                                    enabled:    telemetryLogManager.totalCount > 0
+                                    onClicked:  telemetryLogManager.selectAll()
+                                }
+                                QGCButton {
+                                    text:       qsTr("Select None")
+                                    enabled:    telemetryLogManager.selectedCount > 0
+                                    onClicked:  telemetryLogManager.selectNone()
+                                }
+                                QGCButton {
+                                    text:       qsTr("Delete Selected")
+                                    enabled:    telemetryLogManager.selectedCount > 0
+                                    onClicked:  telemetryLogManager.deleteSelected()
+                                }
+                                QGCButton {
+                                    text:       qsTr("Refresh")
+                                    onClicked:  telemetryLogManager.refresh()
+                                }
+                            }
+
+                            Row {
+                                spacing: ScreenTools.defaultFontPixelWidth
+
+                                QGCButton {
+                                    text:       telemetryLogManager.isCapturing ? qsTr("Capturing...") : qsTr("Start Capture")
+                                    enabled:    !telemetryLogManager.isCapturing
+                                    visible:    !(QGroundControl.multiVehicleManager.activeVehicle && QGroundControl.multiVehicleManager.activeVehicle.armed)
+                                    onClicked:  telemetryLogManager.startCapture()
+                                }
+                                QGCButton {
+                                    text:       qsTr("Stop && Save")
+                                    enabled:    telemetryLogManager.isCapturing
+                                    onClicked:  telemetryLogManager.stopAndSaveCapture()
+                                }
+                            }
+                        }
+                    }
+
                     Item { width: 1; height: _margins; visible: autoConnectSectionLabel.visible }
                     QGCLabel {
                         id:         autoConnectSectionLabel
