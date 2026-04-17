@@ -183,6 +183,7 @@ private:
     static const char*  _tempLogFileTemplate;    ///< Template for temporary log file
     static const char*  _logFileExtension;       ///< Extension for log files
     static const int    _kMinArmedHeartbeats = 3; ///< Consecutive armed heartbeats required to confirm armed state
+    static const qint64 _kMinOrphanSaveBytes = 500 * 1024; ///< Minimum size (bytes) for an orphan log to be worth recovering as a flight
 
     LinkManager*            _linkMgr;
     MultiVehicleManager*    _multiVehicleManager;
