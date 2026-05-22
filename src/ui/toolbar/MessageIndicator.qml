@@ -119,13 +119,16 @@ Item {
             }
 
             //-- Clear Messages
+            // Sits above messageFlick (z: 1) because the flickable covers the
+            // whole popup with anchors.fill and otherwise eats all clicks here.
             QGCColoredImage {
                 anchors.bottom:     parent.bottom
                 anchors.right:      parent.right
                 anchors.margins:    ScreenTools.defaultFontPixelHeight * 0.5
-                height:             ScreenTools.isMobile ? ScreenTools.defaultFontPixelHeight * 3.75 : ScreenTools.defaultFontPixelHeight * 2.5
+                z:                  1
+                height:             ScreenTools.isMobile ? ScreenTools.defaultFontPixelHeight * 1.875 : ScreenTools.defaultFontPixelHeight * 1.25
                 width:              height
-                sourceSize.height:   height
+                sourceSize.height:  height
                 source:             "/res/TrashDelete.svg"
                 fillMode:           Image.PreserveAspectFit
                 mipmap:             true
