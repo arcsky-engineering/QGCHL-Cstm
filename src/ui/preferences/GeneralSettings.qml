@@ -191,7 +191,7 @@ Rectangle {
                             }
 
                             FactCheckBox {
-                                text:       qsTr("Show MicROM UV Camera indicator")
+                                text:       qsTr("Show micROM UV Camera indicator")
                                 visible:    _showMicROMIndicator.visible
                                 fact:       _showMicROMIndicator
 

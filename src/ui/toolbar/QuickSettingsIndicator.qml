@@ -47,10 +47,15 @@ Item {
         id: quickSettingsPopup
 
         Rectangle {
-            width:  popupColumn.width + ScreenTools.defaultFontPixelWidth * 3
-            height: popupColumn.height + ScreenTools.defaultFontPixelHeight * 2
-            radius: ScreenTools.defaultFontPixelHeight * 0.5
-            color:  qgcPal.window
+            id:           popupRect
+            width:        popupColumn.width + ScreenTools.defaultFontPixelWidth * 3
+            // Cap the popup at 85% of the window height so it stays on-screen on
+            // small displays. The inner Flickable handles scrolling when content
+            // exceeds this height.
+            height:       Math.min(popupColumn.height + ScreenTools.defaultFontPixelHeight * 2,
+                                   mainWindow.height * 0.85)
+            radius:       ScreenTools.defaultFontPixelHeight * 0.5
+            color:        qgcPal.window
             border.color: qgcPal.text
 
             FactPanelController { id: controller }
@@ -73,11 +78,22 @@ Item {
             property var _planMasterController: globals.planMasterControllerFlyView
             property var _missionController:    _planMasterController ? _planMasterController.missionController : null
 
+            Flickable {
+                id:                 popupFlick
+                anchors.fill:       parent
+                anchors.margins:    ScreenTools.defaultFontPixelHeight
+                contentWidth:       popupColumn.width
+                contentHeight:      popupColumn.height
+                clip:               true
+                boundsBehavior:     Flickable.StopAtBounds
+                flickableDirection: Flickable.VerticalFlick
+
+                ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+
             Column {
                 id:                 popupColumn
                 spacing:            ScreenTools.defaultFontPixelHeight * 0.5
-                anchors.margins:    ScreenTools.defaultFontPixelHeight
-                anchors.centerIn:   parent
+                anchors.horizontalCenter: parent.horizontalCenter
                 width:              ScreenTools.defaultFontPixelWidth * 36
 
                 QGCLabel {
@@ -340,6 +356,7 @@ Item {
                     }
                 }
             }
+            } // Flickable
         }
     }
 

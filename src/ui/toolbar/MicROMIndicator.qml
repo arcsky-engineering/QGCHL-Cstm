@@ -34,21 +34,34 @@ Item {
         id: micromControlsPopup
 
         Rectangle {
+            id:             popupRect
             width:          mainLayout.width + mainLayout.anchors.margins * 2
-            height:         mainLayout.height + mainLayout.anchors.margins * 2
+            // Cap height to 85% of window so we stay on-screen; Flickable below
+            // handles scrolling when content is taller.
+            height:         Math.min(mainLayout.height + mainLayout.anchors.margins * 2,
+                                     mainWindow.height * 0.85)
             color:          qgcPal.window
             radius:         panelRadius
 
+            Flickable {
+                id:                 popupFlick
+                anchors.fill:       parent
+                anchors.margins:    ScreenTools.defaultFontPixelWidth * 1.5
+                contentWidth:       mainLayout.width
+                contentHeight:      mainLayout.height
+                clip:               true
+                boundsBehavior:     Flickable.StopAtBounds
+                flickableDirection: Flickable.VerticalFlick
+
+                ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+
             ColumnLayout {
                 id:                 mainLayout
-                anchors.margins:    ScreenTools.defaultFontPixelWidth * 1.5
-                anchors.top:        parent.top
-                anchors.left:       parent.left
                 spacing:            ScreenTools.defaultFontPixelHeight * 0.75
 
                 // Title
                 QGCLabel {
-                    text:               qsTr("MicROM UV Camera")
+                    text:               qsTr("micROM UV Camera")
                     font.pointSize:     ScreenTools.mediumFontPointSize
                     font.weight:        Font.Bold
                     Layout.alignment:   Qt.AlignHCenter
@@ -507,6 +520,7 @@ Item {
                     }
                 }
             }
+            } // Flickable
         }
     }
 
@@ -550,7 +564,7 @@ Item {
         spacing:                0
 
         QGCLabel {
-            text:           qsTr("MicROM")
+            text:           qsTr("micROM")
             font.pointSize: ScreenTools.smallFontPointSize
         }
 

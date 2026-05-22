@@ -193,7 +193,9 @@ Item {
                                 QGCLabel { text: qsTr("Bat/Gen %1").arg(object.id.rawValue + 1) }
                                 QGCLabel { text: qsTr("Charge State");                          visible: batteryValuesAvailable.chargeStateAvailable }
                                 QGCLabel { text: qsTr("Remaining");                             visible: batteryValuesAvailable.timeRemainingAvailable }
-                                QGCLabel { text: qsTr("Remaining") }
+                                // % remaining is only meaningful when a generator/fuel sensor
+                                // is present; LiPo packs typically report bogus or -1 values.
+                                QGCLabel { text: qsTr("Remaining");                             visible: _activeVehicle && _activeVehicle.generator.busVoltage.rawValue > 0 }
                                 QGCLabel { text: qsTr("Voltage") }
                                 QGCLabel { text: qsTr("Consumed");                              visible: batteryValuesAvailable.mahConsumedAvailable }
                                 QGCLabel { text: qsTr("Temperature");                           visible: batteryValuesAvailable.temperatureAvailable }
@@ -221,7 +223,7 @@ Item {
                                 QGCLabel { text: "" }
                                 QGCLabel { text: object.chargeState.enumStringValue;                                        visible: batteryValuesAvailable.chargeStateAvailable }
                                 QGCLabel { text: object.timeRemainingStr.value;                                             visible: batteryValuesAvailable.timeRemainingAvailable }
-                                QGCLabel { text: object.percentRemaining.valueString + " " + object.percentRemaining.units }
+                                QGCLabel { text: object.percentRemaining.valueString + " " + object.percentRemaining.units; visible: _activeVehicle && _activeVehicle.generator.busVoltage.rawValue > 0 }
                                 QGCLabel { text: object.voltage.valueString + " " + object.voltage.units }
                                 QGCLabel { text: object.mahConsumed.valueString + " " + object.mahConsumed.units;           visible: batteryValuesAvailable.mahConsumedAvailable }
                                 QGCLabel { text: object.temperature.valueString + " " + object.temperature.units;           visible: batteryValuesAvailable.temperatureAvailable }

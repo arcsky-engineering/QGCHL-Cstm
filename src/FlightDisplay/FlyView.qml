@@ -171,11 +171,11 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         anchors.rightMargin:    _toolsMargin
         width:                  ScreenTools.defaultFontPixelWidth * 10
-        height:                 ScreenTools.defaultFontPixelHeight * 2
+        height:                 ScreenTools.defaultFontPixelHeight * 2.8
         radius:                 ScreenTools.defaultFontPixelWidth / 2
         z:                      QGroundControl.zOrderTopMost
         color:                  "#80000000"
-        border.color:           "#DE881E"
+        border.color:           "white"
         border.width:           1
 
         property var _videoSettings: QGroundControl.settingsManager.videoSettings
@@ -187,11 +187,26 @@ Item {
                  && _videoSettings.rtspUrl.rawValue !== ""
                  && _videoSettings.rtspUrl2.rawValue !== ""
 
-        QGCLabel {
+        Column {
             anchors.centerIn:   parent
-            text:               QGroundControl.videoManager.currentStream === "1" ? qsTr("Stream 1") : qsTr("Stream 2")
-            color:              "#DE881E"
-            font.bold:          true
+            spacing:            ScreenTools.defaultFontPixelHeight * 0.1
+
+            QGCColoredImage {
+                anchors.horizontalCenter: parent.horizontalCenter
+                source:             "/qmlimages/camera_video.svg"
+                color:              "white"
+                width:              ScreenTools.defaultFontPixelHeight * 1.2
+                height:             width
+                sourceSize.height:  height
+                fillMode:           Image.PreserveAspectFit
+            }
+
+            QGCLabel {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text:               QGroundControl.videoManager.currentStream === "1" ? qsTr("Stream 1") : qsTr("Stream 2")
+                color:              "white"
+                font.bold:          true
+            }
         }
 
         MouseArea {

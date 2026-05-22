@@ -350,8 +350,8 @@
 },
 {
     "name":             "showMicROMIndicator",
-    "shortDesc":        "Show MicROM UV Camera indicator",
-    "longDesc":         "If enabled, the MicROM UV camera control indicator will be shown in the toolbar.",
+    "shortDesc":        "Show micROM UV Camera indicator",
+    "longDesc":         "If enabled, the micROM UV camera control indicator will be shown in the toolbar.",
     "type":             "bool",
     "default":          false
 },

@@ -370,7 +370,12 @@ Rectangle {
                 GridLayout {
                     Layout.margins: ScreenTools.defaultFontPixelWidth
                     columns:        3
+                    // HDMI source switching is Herelink AirUnit specific. Hide
+                    // when running on non-Herelink hardware, or when the user
+                    // has chosen a different video source (RTSP/UDP/TCP), where
+                    // these controls don't do anything.
                     visible:        QGroundControl.corePlugin.isHerelink
+                                    && _videoStreamSettings.videoSource.rawValue === _videoStreamSettings.herelinkAirUnitVideoSource
 
                     QGCLabel {
                         text:               qsTr("video source used: HDMI ") + (_videoStreamSettings.cameraId.rawValue + 1)
