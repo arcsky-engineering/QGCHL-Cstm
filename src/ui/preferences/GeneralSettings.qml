@@ -214,6 +214,13 @@ Rectangle {
                             }
 
                             FactCheckBox {
+                                text:       qsTr("Auto-load mission on vehicle connect")
+                                fact:       _autoLoadMissionOnConnect
+                                visible:    _autoLoadMissionOnConnect.visible
+                                property Fact _autoLoadMissionOnConnect: QGroundControl.settingsManager.flyViewSettings.autoLoadMissionOnConnect
+                            }
+
+                            FactCheckBox {
                                 text:       qsTr("Update home position based on device location. This will affect return to home")
                                 fact:       _updateHomePosition
                                 visible:    _updateHomePosition.visible
@@ -372,6 +379,17 @@ Rectangle {
                                     Layout.preferredWidth:  _comboFieldWidth
                                     fact:                   _videoSettings.rtspUrl
                                     visible:                rtspUrlLabel.visible
+                                }
+
+                                QGCLabel {
+                                    id:         rtspUrl2Label
+                                    text:       qsTr("RTSP URL 2")
+                                    visible:    !_videoAutoStreamConfig && _isRTSP && _videoSettings.rtspUrl2.visible
+                                }
+                                FactTextField {
+                                    Layout.preferredWidth:  _comboFieldWidth
+                                    fact:                   _videoSettings.rtspUrl2
+                                    visible:                rtspUrl2Label.visible
                                 }
 
                                 QGCLabel {

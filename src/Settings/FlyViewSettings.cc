@@ -33,4 +33,7 @@ DECLARE_SETTINGSFACT(FlyViewSettings, enableCustomActions)
 DECLARE_SETTINGSFACT(FlyViewSettings, customActionDefinitions)
 DECLARE_SETTINGSFACT(FlyViewSettings, showGuidedActionSlider)
 DECLARE_SETTINGSFACT(FlyViewSettings, disableStartMissionSlider)
+DECLARE_SETTINGSFACT(FlyViewSettings, autoLoadMissionOnConnect)
+DECLARE_SETTINGSFACT(FlyViewSettings, showMissionOnMap)
+DECLARE_SETTINGSFACT(FlyViewSettings, showPhotoCaptureIndicators)
 

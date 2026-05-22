@@ -426,6 +426,86 @@ Item {
                         opacity:            0.7
                     }
                 }
+
+                // Separator
+                Rectangle {
+                    Layout.fillWidth:       true
+                    Layout.preferredHeight: 1
+                    color:                  qgcPal.windowShade
+                }
+
+                // RC channel triggers
+                ColumnLayout {
+                    id:                 rcTriggerLayout
+                    Layout.fillWidth:   true
+                    spacing:            ScreenTools.defaultFontPixelHeight * 0.25
+
+                    // Channel list: index 0 = Disabled, 1..18 = Channel N
+                    property var _channelNames: [
+                        qsTr("Disabled"),
+                        qsTr("Channel 1"),  qsTr("Channel 2"),  qsTr("Channel 3"),
+                        qsTr("Channel 4"),  qsTr("Channel 5"),  qsTr("Channel 6"),
+                        qsTr("Channel 7"),  qsTr("Channel 8"),  qsTr("Channel 9"),
+                        qsTr("Channel 10"), qsTr("Channel 11"), qsTr("Channel 12"),
+                        qsTr("Channel 13"), qsTr("Channel 14"), qsTr("Channel 15"),
+                        qsTr("Channel 16"), qsTr("Channel 17"), qsTr("Channel 18")
+                    ]
+
+                    QGCLabel {
+                        text:               qsTr("RC Channel Triggers")
+                        font.weight:        Font.Medium
+                        Layout.alignment:   Qt.AlignHCenter
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: ScreenTools.defaultFontPixelWidth
+
+                        QGCLabel {
+                            text:                   qsTr("Cam trigger:")
+                            Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 14
+                        }
+                        QGCComboBox {
+                            id:                     camTriggerCombo
+                            Layout.fillWidth:       true
+                            model:                  rcTriggerLayout._channelNames
+                            currentIndex:           _micromController ? _micromController.camTriggerChannel : 0
+                            onActivated: {
+                                if (_micromController) {
+                                    _micromController.camTriggerChannel = index
+                                }
+                            }
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: ScreenTools.defaultFontPixelWidth
+
+                        QGCLabel {
+                            text:                   qsTr("Video trigger:")
+                            Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 14
+                        }
+                        QGCComboBox {
+                            id:                     videoTriggerCombo
+                            Layout.fillWidth:       true
+                            model:                  rcTriggerLayout._channelNames
+                            currentIndex:           _micromController ? _micromController.videoTriggerChannel : 0
+                            onActivated: {
+                                if (_micromController) {
+                                    _micromController.videoTriggerChannel = index
+                                }
+                            }
+                        }
+                    }
+
+                    QGCLabel {
+                        text:               qsTr("Fires on rising edge above 1500 PWM; re-arms below 1500.")
+                        font.pointSize:     ScreenTools.smallFontPointSize
+                        Layout.alignment:   Qt.AlignHCenter
+                        opacity:            0.7
+                    }
+                }
             }
         }
     }

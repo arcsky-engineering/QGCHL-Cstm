@@ -854,6 +854,31 @@ void Vehicle::_mavlinkMessageReceived(LinkInterface* link, mavlink_message_t mes
     _uas->receiveMessage(message);
 }
 
+// Cap how many photo-capture icons we keep on the Fly View map at once. On long
+// missions, leaving every shot stacked up bogs down the map renderer.
+static const int    kCameraTriggerPointsMaxCount = 10;
+// Drop a new icon if it's within this distance of the previous one. CAMERA_FEEDBACK
+// (autopilot) and CAMERA_IMAGE_CAPTURED (camera) often report the same shot, so
+// the two arrive seconds apart at virtually the same coordinate.
+static const double kCameraTriggerDedupMeters    = 2.0;
+
+void Vehicle::_addCameraTriggerPoint(const QGeoCoordinate& coord)
+{
+    if (_cameraTriggerPoints.count() > 0) {
+        auto* last = qobject_cast<QGCQGeoCoordinate*>(_cameraTriggerPoints.get(_cameraTriggerPoints.count() - 1));
+        if (last && last->coordinate().distanceTo(coord) < kCameraTriggerDedupMeters) {
+            return;
+        }
+    }
+    _cameraTriggerPoints.append(new QGCQGeoCoordinate(coord, this));
+    while (_cameraTriggerPoints.count() > kCameraTriggerPointsMaxCount) {
+        QObject* removed = _cameraTriggerPoints.removeAt(0);
+        if (removed) {
+            removed->deleteLater();
+        }
+    }
+}
+
 #if !defined(NO_ARDUPILOT_DIALECT)
 void Vehicle::_handleCameraFeedback(const mavlink_message_t& message)
 {
@@ -863,7 +888,7 @@ void Vehicle::_handleCameraFeedback(const mavlink_message_t& message)
 
     QGeoCoordinate imageCoordinate((double)feedback.lat / qPow(10.0, 7.0), (double)feedback.lng / qPow(10.0, 7.0), feedback.alt_msl);
     qCDebug(VehicleLog) << "_handleCameraFeedback coord:index" << imageCoordinate << feedback.img_idx;
-    _cameraTriggerPoints.append(new QGCQGeoCoordinate(imageCoordinate, this));
+    _addCameraTriggerPoint(imageCoordinate);
 }
 
 void Vehicle::_handleRangefinder(mavlink_message_t& message)
@@ -920,7 +945,7 @@ void Vehicle::_handleCameraImageCaptured(const mavlink_message_t& message)
     QGeoCoordinate imageCoordinate((double)feedback.lat / qPow(10.0, 7.0), (double)feedback.lon / qPow(10.0, 7.0), feedback.alt);
     qCDebug(VehicleLog) << "_handleCameraFeedback coord:index" << imageCoordinate << feedback.image_index << feedback.capture_result;
     if (feedback.capture_result == 1) {
-        _cameraTriggerPoints.append(new QGCQGeoCoordinate(imageCoordinate, this));
+        _addCameraTriggerPoint(imageCoordinate);
     }
 }
 
@@ -2750,6 +2775,19 @@ bool Vehicle::takeoffVehicleSupported() const
 QString Vehicle::gotoFlightMode() const
 {
     return _firmwarePlugin->gotoFlightMode();
+}
+
+void Vehicle::reloadMissionFromVehicle()
+{
+    if (!_missionManager) {
+        return;
+    }
+    SharedLinkInterfacePtr sharedLink = vehicleLinkManager()->primaryLink().lock();
+    if (!sharedLink || sharedLink->linkConfiguration()->isHighLatency() || sharedLink->isLogReplay()) {
+        return;
+    }
+    qCDebug(VehicleLog) << "reloadMissionFromVehicle: triggering MissionManager::loadFromVehicle";
+    _missionManager->loadFromVehicle();
 }
 
 void Vehicle::guidedModeRTL(bool smartRTL)

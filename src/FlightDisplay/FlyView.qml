@@ -162,6 +162,44 @@ Item {
         id: videoControl
     }
 
+    // RTSP stream switcher button — shows on FlyView when an RTSP source is
+    // selected and both rtspUrl and rtspUrl2 are configured. Clicking toggles
+    // _currentStream in VideoManager and restarts the video pipeline.
+    Rectangle {
+        id:                     rtspStreamSwitchButton
+        anchors.right:          parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.rightMargin:    _toolsMargin
+        width:                  ScreenTools.defaultFontPixelWidth * 10
+        height:                 ScreenTools.defaultFontPixelHeight * 2
+        radius:                 ScreenTools.defaultFontPixelWidth / 2
+        z:                      QGroundControl.zOrderTopMost
+        color:                  "#80000000"
+        border.color:           "#DE881E"
+        border.width:           1
+
+        property var _videoSettings: QGroundControl.settingsManager.videoSettings
+        property bool _isRTSP: _videoSettings.videoSource.rawValue === _videoSettings.rtspVideoSource
+
+        visible: !QGroundControl.videoManager.fullScreen
+                 && QGroundControl.videoManager.hasVideo
+                 && _isRTSP
+                 && _videoSettings.rtspUrl.rawValue !== ""
+                 && _videoSettings.rtspUrl2.rawValue !== ""
+
+        QGCLabel {
+            anchors.centerIn:   parent
+            text:               QGroundControl.videoManager.currentStream === "1" ? qsTr("Stream 1") : qsTr("Stream 2")
+            color:              "#DE881E"
+            font.bold:          true
+        }
+
+        MouseArea {
+            anchors.fill:   parent
+            onClicked:      QGroundControl.videoManager.switchRTSPStream()
+        }
+    }
+
     QGCPipOverlay {
         id:                     _pipOverlay
         anchors.left:           parent.left

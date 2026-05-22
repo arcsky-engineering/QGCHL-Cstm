@@ -8,7 +8,12 @@
  ****************************************************************************/
 
 #include "MicROMController.h"
+#include "MultiVehicleManager.h"
+#include "Vehicle.h"
+#include "QGCApplication.h"
+#include "QGCToolbox.h"
 #include <QDebug>
+#include <QSettings>
 
 MicROMController::MicROMController(QObject* parent)
     : QObject(parent)
@@ -29,6 +34,18 @@ MicROMController::MicROMController(QObject* parent)
     _keepaliveTimer = new QTimer(this);
     connect(_keepaliveTimer, &QTimer::timeout, this, &MicROMController::_sendKeepalive);
     _keepaliveTimer->start(KEEPALIVE_INTERVAL_MS);
+
+    // Load persisted RC trigger channel settings
+    QSettings settings;
+    settings.beginGroup("MicROM");
+    _camTriggerChannel   = settings.value("camTriggerChannel",   0).toInt();
+    _videoTriggerChannel = settings.value("videoTriggerChannel", 0).toInt();
+    settings.endGroup();
+
+    // Hook into the active vehicle for RC channel monitoring
+    MultiVehicleManager* mvm = qgcApp()->toolbox()->multiVehicleManager();
+    connect(mvm, &MultiVehicleManager::activeVehicleChanged, this, &MicROMController::_activeVehicleChanged);
+    _activeVehicleChanged(mvm->activeVehicle());
 
     // Initial connection attempt
     _sendKeepalive();
@@ -374,5 +391,82 @@ void MicROMController::_parseResponse(const QByteArray& data)
     // Log unknown responses but don't spam for known periodic messages
     if (!response.isEmpty()) {
         qDebug() << "MicROMController: Unhandled response:" << response;
+    }
+}
+
+void MicROMController::setCamTriggerChannel(int channel)
+{
+    if (channel < 0)  channel = 0;
+    if (channel > 18) channel = 18;
+    if (_camTriggerChannel == channel) {
+        return;
+    }
+    _camTriggerChannel = channel;
+    // Re-arm so we don't fire on the first sample after a channel change
+    _camTriggerHigh = true;
+    QSettings settings;
+    settings.beginGroup("MicROM");
+    settings.setValue("camTriggerChannel", _camTriggerChannel);
+    settings.endGroup();
+    emit camTriggerChannelChanged();
+}
+
+void MicROMController::setVideoTriggerChannel(int channel)
+{
+    if (channel < 0)  channel = 0;
+    if (channel > 18) channel = 18;
+    if (_videoTriggerChannel == channel) {
+        return;
+    }
+    _videoTriggerChannel = channel;
+    _videoTriggerHigh = true;
+    QSettings settings;
+    settings.beginGroup("MicROM");
+    settings.setValue("videoTriggerChannel", _videoTriggerChannel);
+    settings.endGroup();
+    emit videoTriggerChannelChanged();
+}
+
+void MicROMController::_activeVehicleChanged(Vehicle* vehicle)
+{
+    if (_activeVehicle) {
+        disconnect(_activeVehicle, &Vehicle::rcChannelsChanged, this, &MicROMController::_rcChannelsChanged);
+    }
+    _activeVehicle = vehicle;
+    if (_activeVehicle) {
+        connect(_activeVehicle, &Vehicle::rcChannelsChanged, this, &MicROMController::_rcChannelsChanged);
+    }
+    // Re-arm on vehicle switch so we don't fire on the first inherited sample
+    _camTriggerHigh = true;
+    _videoTriggerHigh = true;
+}
+
+void MicROMController::_rcChannelsChanged(int channelCount, int pwmValues[18])
+{
+    auto checkEdge = [&](int channel, bool& highState) -> bool {
+        if (channel <= 0 || channel > channelCount) {
+            return false;
+        }
+        int pwm = pwmValues[channel - 1];
+        if (pwm < 0) {
+            return false;   // channel unavailable
+        }
+        bool currentlyHigh = (pwm >= TRIGGER_PWM_THRESHOLD);
+        bool risingEdge = currentlyHigh && !highState;
+        highState = currentlyHigh;
+        return risingEdge;
+    };
+
+    if (checkEdge(_camTriggerChannel, _camTriggerHigh)) {
+        qDebug() << "MicROMController: RC cam trigger fired on channel" << _camTriggerChannel;
+        takePhoto();
+    }
+    if (checkEdge(_videoTriggerChannel, _videoTriggerHigh)) {
+        qDebug() << "MicROMController: RC video trigger fired on channel" << _videoTriggerChannel;
+        if (_recording) {
+            stopVideo();
+        } else {
+            startVideo();
+        }
     }
 }

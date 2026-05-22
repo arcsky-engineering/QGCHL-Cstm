@@ -107,6 +107,27 @@
     "longDesc":     "When enabled, the slide-to-confirm dialog will not automatically pop up when a mission is ready to start or continue.",
     "type":         "bool",
     "default":      false
+},
+{
+    "name":         "autoLoadMissionOnConnect",
+    "shortDesc":    "Auto-load mission on connect",
+    "longDesc":     "When enabled, QGC requests the mission from the vehicle on every connection. Disable to avoid slow mission downloads on connect; you can still trigger a manual download from the plan view.",
+    "type":         "bool",
+    "default":      true
+},
+{
+    "name":         "showMissionOnMap",
+    "shortDesc":    "Show mission on Fly View map",
+    "longDesc":     "Master switch for displaying the mission on the Fly View map (polyline, waypoint markers, and direction arrows). Turn off to hide all mission visuals without losing the loaded mission.",
+    "type":         "bool",
+    "default":      true
+},
+{
+    "name":         "showPhotoCaptureIndicators",
+    "shortDesc":    "Show photo capture indicators",
+    "longDesc":     "When enabled, small camera icons are drawn on the Fly View map at each photo capture location. Disable to reduce visual clutter or improve performance on long missions.",
+    "type":         "bool",
+    "default":      true
 }
 ]
 }

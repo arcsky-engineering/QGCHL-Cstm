@@ -35,4 +35,7 @@ public:
     DEFINE_SETTINGFACT(customActionDefinitions)
     DEFINE_SETTINGFACT(showGuidedActionSlider)
     DEFINE_SETTINGFACT(disableStartMissionSlider)
+    DEFINE_SETTINGFACT(autoLoadMissionOnConnect)
+    DEFINE_SETTINGFACT(showMissionOnMap)
+    DEFINE_SETTINGFACT(showPhotoCaptureIndicators)
 };

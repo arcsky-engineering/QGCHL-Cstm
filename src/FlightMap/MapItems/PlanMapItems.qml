@@ -35,9 +35,11 @@ Item {
 
     property string fmode: vehicle.flightMode
 
+    property bool _showMissionOnMap: QGroundControl.settingsManager.flyViewSettings.showMissionOnMap.rawValue
+
     // Add the mission item visuals to the map
     Repeater {
-        model: largeMapView ? _missionController.visualItems : 0
+        model: (largeMapView && _showMissionOnMap) ? _missionController.visualItems : 0
 
         delegate: MissionItemMapVisual {
             map:        _map
@@ -64,7 +66,7 @@ Item {
             line.width: 3
             line.color: "#be781c"                           // Hack, can't get palette to work in here
             z:          QGroundControl.zOrderWaypointLines
-            path:       _missionController.waypointPath
+            path:       _showMissionOnMap ? _missionController.waypointPath : []
         }
     }
 }

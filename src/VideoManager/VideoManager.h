@@ -59,6 +59,7 @@ public:
     Q_PROPERTY(QSize            videoSize               READ    videoSize                                   NOTIFY videoSizeChanged)
     // Specific to Herelink only, to manage HDMI switching    
     Q_PROPERTY(VideoStreamControl* videoStreamControl   READ    videoStreamControl                          CONSTANT)
+    Q_PROPERTY(QString          currentStream           READ    currentStream                               NOTIFY streamChangedRtsp)
 
     virtual bool        hasVideo            ();
     virtual bool        isGStreamer         ();
@@ -118,6 +119,10 @@ public:
 
     Q_INVOKABLE void grabImage(const QString& imageFile = QString());
 
+    Q_INVOKABLE void switchRTSPStream();
+
+    QString currentStream() const { return (_currentStream == 1) ? QStringLiteral("1") : QStringLiteral("2"); }
+
 signals:
     void hasVideoChanged            ();
     void isGStreamerChanged         ();
@@ -134,6 +139,7 @@ signals:
     void recordingChanged           ();
     void recordingStarted           ();
     void videoSizeChanged           ();
+    void streamChangedRtsp          ();
 
 protected slots:
     void _videoSourceChanged        ();
@@ -183,6 +189,7 @@ protected:
     Vehicle*                _activeVehicle          = nullptr;
 
     VideoStreamControl*     _videoStreamControl     = nullptr;
+    uint8_t                 _currentStream          = 1;
 };
 
 #endif

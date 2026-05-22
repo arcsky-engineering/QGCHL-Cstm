@@ -15,6 +15,10 @@
 #include "ParameterManager.h"
 #include "ComponentInformationManager.h"
 #include "MissionManager.h"
+#include "QGCApplication.h"
+#include "SettingsManager.h"
+#include "FlyViewSettings.h"
+#include <QTimer>
 
 QGC_LOGGING_CATEGORY(InitialConnectStateMachineLog, "InitialConnectStateMachineLog")
 
@@ -23,6 +27,7 @@ const StateMachine::StateFn InitialConnectStateMachine::_rgStates[] = {
     InitialConnectStateMachine::_stateRequestProtocolVersion,
     InitialConnectStateMachine::_stateRequestStandardModes,
     InitialConnectStateMachine::_stateRequestCompInfo,
+    InitialConnectStateMachine::_stateParamSettleDelay,
     InitialConnectStateMachine::_stateRequestParameters,
     InitialConnectStateMachine::_stateRequestMission,
     InitialConnectStateMachine::_stateRequestGeoFence,
@@ -35,6 +40,7 @@ const int InitialConnectStateMachine::_rgProgressWeights[] = {
     1, //_stateRequestProtocolVersion
     1, //_stateRequestStandardModes
     5, //_stateRequestCompInfo
+    1, //_stateParamSettleDelay
     5, //_stateRequestParameters
     2, //_stateRequestMission
     1, //_stateRequestGeoFence
@@ -311,6 +317,21 @@ void InitialConnectStateMachine::_stateRequestCompInfoComplete(void* requestAllC
     connectMachine->advance();
 }
 
+void InitialConnectStateMachine::_stateParamSettleDelay(StateMachine* stateMachine)
+{
+    // Delay before requesting parameters to give vehicle-side Lua scripts time
+    // to register/finish their AP_Param initialization. Without this delay, the
+    // ArduPilot FTP param download can race the scripts and yield a corrupt or
+    // incomplete parameter set.
+    InitialConnectStateMachine* connectMachine = static_cast<InitialConnectStateMachine*>(stateMachine);
+
+    static constexpr int kSettleDelayMs = 2500;
+    qCDebug(InitialConnectStateMachineLog) << "_stateParamSettleDelay: waiting" << kSettleDelayMs << "ms for FC Lua scripts to settle";
+    QTimer::singleShot(kSettleDelayMs, connectMachine, [connectMachine]() {
+        connectMachine->advance();
+    });
+}
+
 void InitialConnectStateMachine::_stateRequestParameters(StateMachine* stateMachine)
 {
     InitialConnectStateMachine* connectMachine  = static_cast<InitialConnectStateMachine*>(stateMachine);
@@ -334,16 +355,17 @@ void InitialConnectStateMachine::_stateRequestMission(StateMachine* stateMachine
     if (!sharedLink) {
         qCDebug(InitialConnectStateMachineLog) << "_stateRequestMission: Skipping first mission load request due to no primary link";
         connectMachine->advance();
+    } else if (sharedLink->linkConfiguration()->isHighLatency() || sharedLink->isPX4Flow() || sharedLink->isLogReplay()) {
+        qCDebug(InitialConnectStateMachineLog) << "_stateRequestMission: Skipping first mission load request due to link type";
+        vehicle->_firstMissionLoadComplete();
+    } else if (!qgcApp()->toolbox()->settingsManager()->flyViewSettings()->autoLoadMissionOnConnect()->rawValue().toBool()) {
+        qCDebug(InitialConnectStateMachineLog) << "_stateRequestMission: Skipping due to autoLoadMissionOnConnect setting";
+        vehicle->_firstMissionLoadComplete();
     } else {
-        if (sharedLink->linkConfiguration()->isHighLatency() || sharedLink->isPX4Flow() || sharedLink->isLogReplay()) {
-            qCDebug(InitialConnectStateMachineLog) << "_stateRequestMission: Skipping first mission load request due to link type";
-            vehicle->_firstMissionLoadComplete();
-        } else {
-            qCDebug(InitialConnectStateMachineLog) << "_stateRequestMission";
-            vehicle->_missionManager->loadFromVehicle();
-            connect(vehicle->_missionManager, &MissionManager::progressPct, connectMachine,
-                    &InitialConnectStateMachine::gotProgressUpdate);
-        }
+        qCDebug(InitialConnectStateMachineLog) << "_stateRequestMission";
+        vehicle->_missionManager->loadFromVehicle();
+        connect(vehicle->_missionManager, &MissionManager::progressPct, connectMachine,
+                &InitialConnectStateMachine::gotProgressUpdate);
     }
 }
 

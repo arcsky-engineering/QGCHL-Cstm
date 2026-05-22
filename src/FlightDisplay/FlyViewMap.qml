@@ -332,7 +332,8 @@ FlightMap {
     }
 
     MapItemView {
-        model: pipMode ? undefined : _missionController.directionArrows
+        model: (pipMode || !QGroundControl.settingsManager.flyViewSettings.showMissionOnMap.rawValue)
+               ? undefined : _missionController.directionArrows
 
         delegate: MapLineArrow {
             fromCoord:      object ? object.coordinate1 : undefined
@@ -376,7 +377,8 @@ FlightMap {
 
     // Camera trigger points
     MapItemView {
-        model: _activeVehicle ? _activeVehicle.cameraTriggerPoints : 0
+        model: (_activeVehicle && QGroundControl.settingsManager.flyViewSettings.showPhotoCaptureIndicators.rawValue)
+               ? _activeVehicle.cameraTriggerPoints : 0
 
         delegate: CameraTriggerIndicator {
             coordinate:     object.coordinate

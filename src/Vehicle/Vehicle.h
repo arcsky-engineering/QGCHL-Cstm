@@ -351,6 +351,11 @@ public:
 
     Q_INVOKABLE void virtualTabletJoystickValue(double roll, double pitch, double yaw, double thrust);
 
+    /// Manually re-request the mission from the vehicle. Used by the Quick Config download
+    /// button. We talk directly to MissionManager because PlanMasterController::loadFromVehicle
+    /// is a no-op in fly view by design.
+    Q_INVOKABLE void reloadMissionFromVehicle();
+
     /// Command vehicle to return to launch
     Q_INVOKABLE void guidedModeRTL(bool smartRTL);
 
@@ -1102,6 +1107,7 @@ private:
     void _handleRangefinder             (mavlink_message_t& message);
 #endif
     void _handleCameraImageCaptured     (const mavlink_message_t& message);
+    void _addCameraTriggerPoint         (const QGeoCoordinate& coord);
     void _handleADSBVehicle             (const mavlink_message_t& message);
     void _handleRawImuTemp              (mavlink_message_t& message);
     void _missionManagerError           (int errorCode, const QString& errorMsg);

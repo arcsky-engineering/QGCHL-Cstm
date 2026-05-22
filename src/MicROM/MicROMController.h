@@ -17,6 +17,8 @@
 #include <QTimer>
 #include <QHostAddress>
 
+class Vehicle;
+
 class MicROMController : public QObject
 {
     Q_OBJECT
@@ -33,6 +35,8 @@ public:
     Q_PROPERTY(QString  cameraIP        READ cameraIP       WRITE setCameraIP   NOTIFY cameraIPChanged)
     Q_PROPERTY(QString  lastError       READ lastError      NOTIFY lastErrorChanged)
     Q_PROPERTY(bool     sdCardPresent   READ sdCardPresent  NOTIFY sdCardPresentChanged)
+    Q_PROPERTY(int      camTriggerChannel   READ camTriggerChannel   WRITE setCamTriggerChannel   NOTIFY camTriggerChannelChanged)
+    Q_PROPERTY(int      videoTriggerChannel READ videoTriggerChannel WRITE setVideoTriggerChannel NOTIFY videoTriggerChannelChanged)
 
     bool    connected() const       { return _connected; }
     bool    recording() const       { return _recording; }
@@ -42,8 +46,12 @@ public:
     QString cameraIP() const        { return _cameraIP; }
     QString lastError() const       { return _lastError; }
     bool    sdCardPresent() const   { return _sdCardPresent; }
+    int     camTriggerChannel() const   { return _camTriggerChannel; }
+    int     videoTriggerChannel() const { return _videoTriggerChannel; }
 
     void setCameraIP(const QString& ip);
+    void setCamTriggerChannel(int channel);
+    void setVideoTriggerChannel(int channel);
 
     // Commands callable from QML
     Q_INVOKABLE void takePhoto();
@@ -66,10 +74,14 @@ signals:
     void photoTaken();
     void photoError();
     void videoError();
+    void camTriggerChannelChanged();
+    void videoTriggerChannelChanged();
 
 private slots:
     void _readPendingDatagrams();
     void _sendKeepalive();
+    void _activeVehicleChanged(Vehicle* vehicle);
+    void _rcChannelsChanged(int channelCount, int pwmValues[18]);
 
 private:
     void _sendCommand(const QString& command);
@@ -95,6 +107,17 @@ private:
     bool        _pendingVideoStart   = false;  // Track if we're waiting for video start confirmation
     bool        _pendingVideoStop    = false;  // Track if we're waiting for video stop confirmation
     QString     _lastError;
+
+    // RC channel triggers (0 = disabled, 1-18 = channel index)
+    int         _camTriggerChannel   = 0;
+    int         _videoTriggerChannel = 0;
+    // Track previous high/low state for rising-edge detection.
+    // Initialized true so we don't fire if the channel is already high on first sample.
+    bool        _camTriggerHigh      = true;
+    bool        _videoTriggerHigh    = true;
+    Vehicle*    _activeVehicle       = nullptr;
+
+    static const int TRIGGER_PWM_THRESHOLD   = 1500;
 
     static const int KEEPALIVE_INTERVAL_MS   = 5000;
     static const int MAX_KEEPALIVE_MISSES    = 3;
