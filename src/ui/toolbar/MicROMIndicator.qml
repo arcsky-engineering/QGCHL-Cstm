@@ -35,10 +35,12 @@ Item {
 
         Rectangle {
             id:             popupRect
-            width:          mainLayout.width + mainLayout.anchors.margins * 2
+            // Width covers content + Flickable side margins (1.5 * fontWidth each)
+            // + a buffer for the vertical scrollbar.
+            width:          mainLayout.width + ScreenTools.defaultFontPixelWidth * 6
             // Cap height to 85% of window so we stay on-screen; Flickable below
             // handles scrolling when content is taller.
-            height:         Math.min(mainLayout.height + mainLayout.anchors.margins * 2,
+            height:         Math.min(mainLayout.height + ScreenTools.defaultFontPixelWidth * 3,
                                      mainWindow.height * 0.85)
             color:          qgcPal.window
             radius:         panelRadius
@@ -512,12 +514,6 @@ Item {
                         }
                     }
 
-                    QGCLabel {
-                        text:               qsTr("Fires on rising edge above 1500 PWM; re-arms below 1500.")
-                        font.pointSize:     ScreenTools.smallFontPointSize
-                        Layout.alignment:   Qt.AlignHCenter
-                        opacity:            0.7
-                    }
                 }
             }
             } // Flickable

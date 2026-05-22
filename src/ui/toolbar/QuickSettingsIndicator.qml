@@ -48,7 +48,9 @@ Item {
 
         Rectangle {
             id:           popupRect
-            width:        popupColumn.width + ScreenTools.defaultFontPixelWidth * 3
+            // Width covers the content column + Flickable margins on both sides
+            // (defaultFontPixelHeight) + a buffer for the vertical scrollbar.
+            width:        popupColumn.width + ScreenTools.defaultFontPixelHeight * 2 + ScreenTools.defaultFontPixelWidth * 4
             // Cap the popup at 85% of the window height so it stays on-screen on
             // small displays. The inner Flickable handles scrolling when content
             // exceeds this height.

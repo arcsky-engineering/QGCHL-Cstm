@@ -123,7 +123,7 @@ Item {
                 anchors.bottom:     parent.bottom
                 anchors.right:      parent.right
                 anchors.margins:    ScreenTools.defaultFontPixelHeight * 0.5
-                height:             ScreenTools.isMobile ? ScreenTools.defaultFontPixelHeight * 1.5 : ScreenTools.defaultFontPixelHeight
+                height:             ScreenTools.isMobile ? ScreenTools.defaultFontPixelHeight * 3.75 : ScreenTools.defaultFontPixelHeight * 2.5
                 width:              height
                 sourceSize.height:   height
                 source:             "/res/TrashDelete.svg"
