@@ -133,7 +133,7 @@ Rectangle {
 
                         QGCLabel {
                             anchors.fill:           parent
-                            text:                   qsTr("GCS GPS")
+                            text:                   qsTr("GCS GPS") + (_activeRID && _activeVehicle.remoteIDManager.positionSourceTag !== "" ? " (" + _activeVehicle.remoteIDManager.positionSourceTag + ")" : "")
                             wrapMode:               Text.WordWrap
                             horizontalAlignment:    Text.AlignHCenter
                             verticalAlignment:      Text.AlignVCenter

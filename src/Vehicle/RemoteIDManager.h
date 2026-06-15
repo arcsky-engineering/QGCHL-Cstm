@@ -12,6 +12,7 @@
 #include <QObject>
 #include <QDateTime>
 #include <QGeoPositionInfo>
+#include <QGeoCoordinate>
 
 #include "QGCLoggingCategory.h"
 #include "QGCMAVLink.h"
@@ -37,6 +38,7 @@ public:
     Q_PROPERTY (bool    basicIDGood         READ basicIDGood        NOTIFY basicIDGoodChanged)
     Q_PROPERTY (bool    emergencyDeclared   READ emergencyDeclared  NOTIFY emergencyDeclaredChanged)
     Q_PROPERTY (bool    operatorIDGood      READ operatorIDGood     NOTIFY operatorIDGoodChanged)
+    Q_PROPERTY (QString positionSourceTag   READ positionSourceTag  NOTIFY broadcastPositionChanged) // "G", "D", or "" - source of the broadcast operator location
 
 
     Q_INVOKABLE void checkOperatorID(const QString& operatorID);
@@ -52,6 +54,7 @@ public:
     bool    basicIDGood         (void) const { return _basicIDGood; }
     bool    emergencyDeclared   (void) const { return _emergencyDeclared;}
     bool    operatorIDGood      (void) const { return _operatorIDGood; }
+    QString positionSourceTag   (void) const;
 
     void mavlinkMessageReceived (mavlink_message_t& message);
 
@@ -74,6 +77,7 @@ signals:
     void basicIDGoodChanged();
     void emergencyDeclaredChanged();
     void operatorIDGoodChanged();
+    void broadcastPositionChanged();
 
 private slots:
     void _odidTimeout();
@@ -122,6 +126,21 @@ private:
 
     // After emergency cleared, this makes sure the non emergency selfID message makes it to the vehicle
     bool        _enforceSendingSelfID;
+
+    // Operator-location source state machine (ported from stock QGroundControl).
+    // We prefer the controller's GCS GPS, but it can take a long time to acquire.
+    // After an initial wait we fall back to broadcasting the *drone's* position
+    // as the operator location, and switch back to GCS as soon as it recovers.
+    // The position is frozen on arm so it never tracks the drone's flight path.
+    // See _sendSystem().
+    bool           _gcsEverGood                  = false;  // latched true on first valid GCS fix
+    bool           _droneFallbackActive          = false;  // true while broadcasting the drone's coordinate
+    QGeoCoordinate _lastGoodGcsPosition;                   // most recent good GCS fix (used while stale, post-first-fix)
+    QDateTime      _droneFallbackEligibleStartTime;        // set while disarmed AND GCS stale post-first-fix; else cleared
+    QDateTime      _startupTime;                           // construction time, for the initial-wait timer
+    QGeoCoordinate _broadcastPosition;                     // last position actually broadcast (frozen on arm)
+    bool           _broadcastPositionValid       = false;
+    bool           _broadcastUsingDrone          = false;  // false -> GCS, true -> drone (fallback)
 
     static const uint8_t* _id_or_mac_unknown;
 

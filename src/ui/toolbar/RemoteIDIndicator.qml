@@ -30,6 +30,7 @@ Item {
     property int    remoteIDState:      getRemoteIDState()
 
     property bool   gpsFlag:            _activeVehicle && _activeVehicle.remoteIDManager ? _activeVehicle.remoteIDManager.gcsGPSGood         : false
+    property string sourceTag:          _activeVehicle && _activeVehicle.remoteIDManager ? _activeVehicle.remoteIDManager.positionSourceTag : ""
     property bool   basicIDFlag:        _activeVehicle && _activeVehicle.remoteIDManager ? _activeVehicle.remoteIDManager.basicIDGood        : false
     property bool   armFlag:            _activeVehicle && _activeVehicle.remoteIDManager ? _activeVehicle.remoteIDManager.armStatusGood      : false
     property bool   commsFlag:          _activeVehicle && _activeVehicle.remoteIDManager ? _activeVehicle.remoteIDManager.commsGood          : false
@@ -195,7 +196,7 @@ Item {
 
                         QGCLabel {
                             anchors.fill:           parent
-                            text:                   qsTr("GCS GPS")
+                            text:                   qsTr("GCS GPS") + (sourceTag !== "" ? " (" + sourceTag + ")" : "")
                             wrapMode:               Text.WordWrap
                             horizontalAlignment:    Text.AlignHCenter
                             verticalAlignment:      Text.AlignVCenter
