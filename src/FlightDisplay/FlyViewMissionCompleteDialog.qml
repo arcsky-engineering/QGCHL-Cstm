@@ -33,7 +33,7 @@ Item {
     property bool _vehicleWasInMissionFlightMode:   false
     property bool _showMissionCompleteDialog:       _vehicleWasArmed && _vehicleWasInMissionFlightMode &&
                                                     (missionController.containsItems || geoFenceController.containsItems || rallyPointController.containsItems ||
-                                                     (_activeVehicle ? _activeVehicle.cameraTriggerPoints.count !== 0 : false))
+                                                     (_activeVehicle ? _activeVehicle.cameraTriggerCount !== 0 : false))
 
     on_VehicleArmedChanged: {
         if (_vehicleArmed) {
@@ -75,9 +75,9 @@ Item {
 
                 QGCLabel {
                     Layout.fillWidth:       true
-                    text:                   qsTr("%1 Images Taken").arg(_activeVehicle.cameraTriggerPoints.count)
+                    text:                   qsTr("%1 Images Taken").arg(_activeVehicle.cameraTriggerCount)
                     horizontalAlignment:    Text.AlignHCenter
-                    visible:                _activeVehicle.cameraTriggerPoints.count !== 0
+                    visible:                _activeVehicle.cameraTriggerCount !== 0
                 }
 
                 QGCButton {

@@ -171,6 +171,7 @@ public:
     Q_PROPERTY(QString              flightMode                  READ flightMode                 WRITE setFlightMode                 NOTIFY flightModeChanged)
     Q_PROPERTY(TrajectoryPoints*    trajectoryPoints            MEMBER _trajectoryPoints                                            CONSTANT)
     Q_PROPERTY(QmlObjectListModel*  cameraTriggerPoints         READ cameraTriggerPoints                                            CONSTANT)
+    Q_PROPERTY(int                  cameraTriggerCount          READ cameraTriggerCount                                             NOTIFY cameraTriggerCountChanged)
     Q_PROPERTY(float                latitude                    READ latitude                                                       NOTIFY coordinateChanged)
     Q_PROPERTY(float                longitude                   READ longitude                                                      NOTIFY coordinateChanged)
     Q_PROPERTY(bool                 messageTypeNone             READ messageTypeNone                                                NOTIFY messageTypeChanged)
@@ -573,6 +574,7 @@ public:
     void setPrearmError(const QString& prearmError);
 
     QmlObjectListModel* cameraTriggerPoints () { return &_cameraTriggerPoints; }
+    int  cameraTriggerCount () const { return _cameraTriggerCount; }
 
     int  flowImageIndex() const{ return _flowImageIndex; }
 
@@ -982,6 +984,7 @@ signals:
     void telemetryRNoiseChanged         (int value);
     void autoDisarmChanged              ();
     void flightModesChanged             ();
+    void cameraTriggerCountChanged      (int cameraTriggerCount);
     void sensorsPresentBitsChanged      (int sensorsPresentBits);
     void sensorsEnabledBitsChanged      (int sensorsEnabledBits);
     void sensorsHealthBitsChanged       (int sensorsHealthBits);
@@ -1244,6 +1247,7 @@ private:
     QTimer                          _flightTimeUpdater;
     TrajectoryPoints*               _trajectoryPoints = nullptr;
     QmlObjectListModel              _cameraTriggerPoints;
+    int                             _cameraTriggerCount = 0;    ///< Monotonic count of captures; independent of the 10-item icon buffer
     //QMap<QString, ADSBVehicle*>     _trafficVehicleMap;
 
     // Toolbox references

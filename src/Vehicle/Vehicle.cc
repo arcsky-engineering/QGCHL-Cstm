@@ -870,6 +870,12 @@ void Vehicle::_addCameraTriggerPoint(const QGeoCoordinate& coord)
             return;
         }
     }
+    // Count every accepted (deduplicated) capture. This is decoupled from the map-icon
+    // buffer below, which is capped at kCameraTriggerPointsMaxCount, so the displayed
+    // photo count keeps growing while only the last N icons are drawn.
+    _cameraTriggerCount++;
+    emit cameraTriggerCountChanged(_cameraTriggerCount);
+
     _cameraTriggerPoints.append(new QGCQGeoCoordinate(coord, this));
     while (_cameraTriggerPoints.count() > kCameraTriggerPointsMaxCount) {
         QObject* removed = _cameraTriggerPoints.removeAt(0);
@@ -2461,6 +2467,8 @@ void Vehicle::_rallyPointManagerError(int errorCode, const QString& errorMsg)
 void Vehicle::_clearCameraTriggerPoints()
 {
     _cameraTriggerPoints.clearAndDeleteContents();
+    _cameraTriggerCount = 0;
+    emit cameraTriggerCountChanged(_cameraTriggerCount);
 }
 
 void Vehicle::_flightTimerStart()
