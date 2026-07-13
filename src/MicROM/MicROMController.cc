@@ -12,6 +12,8 @@
 #include "Vehicle.h"
 #include "QGCApplication.h"
 #include "QGCToolbox.h"
+#include "SettingsManager.h"
+#include "AppSettings.h"
 #include <QDebug>
 #include <QSettings>
 
@@ -42,6 +44,24 @@ MicROMController::MicROMController(QObject* parent)
     _videoTriggerChannel = settings.value("videoTriggerChannel", 0).toInt();
     settings.endGroup();
 
+    // Camera IP is persisted via the shared app SettingsFact so the command socket and the
+    // video pipeline (VideoManager) always target the same address. On a secondary controller
+    // this is set to the relay address (e.g. 192.168.43.1).
+    AppSettings* appSettings = qgcApp()->toolbox()->settingsManager()->appSettings();
+    _cameraIP = appSettings->cameraIp()->rawValue().toString();
+    connect(appSettings->cameraIp(), &Fact::rawValueChanged, this, [this](QVariant value){
+        const QString ip = value.toString();
+        if (_cameraIP != ip) {
+            _cameraIP = ip;
+            emit cameraIPChanged();
+            // Reset connection state and re-ping the new address
+            _connected = false;
+            _keepaliveMisses = 0;
+            emit connectedChanged();
+            _sendKeepalive();
+        }
+    });
+
     // Hook into the active vehicle for RC channel monitoring
     MultiVehicleManager* mvm = qgcApp()->toolbox()->multiVehicleManager();
     connect(mvm, &MultiVehicleManager::activeVehicleChanged, this, &MicROMController::_activeVehicleChanged);
@@ -60,14 +80,11 @@ MicROMController::~MicROMController()
 
 void MicROMController::setCameraIP(const QString& ip)
 {
-    if (_cameraIP != ip) {
-        _cameraIP = ip;
-        emit cameraIPChanged();
-        // Reset connection state with new IP
-        _connected = false;
-        _keepaliveMisses = 0;
-        emit connectedChanged();
-        _sendKeepalive();
+    // Write through to the persistent SettingsFact; the fact's rawValueChanged handler
+    // (wired in the constructor) updates _cameraIP, resets the connection and re-pings.
+    Fact* fact = qgcApp()->toolbox()->settingsManager()->appSettings()->cameraIp();
+    if (fact->rawValue().toString() != ip) {
+        fact->setRawValue(ip);
     }
 }
 

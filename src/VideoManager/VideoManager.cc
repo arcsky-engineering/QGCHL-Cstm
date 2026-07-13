@@ -26,6 +26,7 @@
 #include "QGCOptions.h"
 #include "MultiVehicleManager.h"
 #include "Settings/SettingsManager.h"
+#include "Settings/AppSettings.h"
 #include "Vehicle.h"
 #include "QGCCameraManager.h"
 
@@ -103,6 +104,8 @@ VideoManager::setToolbox(QGCToolbox *toolbox)
    connect(_videoSettings->rtspUrl(),       &Fact::rawValueChanged, this, &VideoManager::_rtspUrlChanged);
    connect(_videoSettings->rtspUrl2(),      &Fact::rawValueChanged, this, &VideoManager::_rtspUrlChanged);
    connect(_videoSettings->tcpUrl(),        &Fact::rawValueChanged, this, &VideoManager::_tcpUrlChanged);
+   // micROM camera IP drives the derived RTSP URL; restart stream 0 when it changes
+   connect(toolbox->settingsManager()->appSettings()->cameraIp(), &Fact::rawValueChanged, this, &VideoManager::_rtspUrlChanged);
    connect(_videoSettings->aspectRatio(),   &Fact::rawValueChanged, this, &VideoManager::_aspectRatioChanged);
    connect(_videoSettings->lowLatencyMode(),&Fact::rawValueChanged, this, &VideoManager::_lowLatencyModeChanged);
    MultiVehicleManager *pVehicleMgr = qgcApp()->toolbox()->multiVehicleManager();
@@ -583,6 +586,7 @@ VideoManager::isGStreamer()
             videoSource == VideoSettings::videoSourceYuneecMantisG ||
             videoSource == VideoSettings::videoSourceHerelinkAirUnit ||
             videoSource == VideoSettings::videoSourceHerelinkHotspot ||
+            videoSource == VideoSettings::videoSourceMicROM ||
             autoStreamConfigured();
 #else
     return false;
@@ -767,6 +771,10 @@ VideoManager::_updateSettings(unsigned id)
         settingsChanged |= _updateVideoUri(0, QStringLiteral("rtsp://192.168.0.10:8554/H264Video"));
     else if (source == VideoSettings::videoSourceHerelinkHotspot)
         settingsChanged |= _updateVideoUri(0, QStringLiteral("rtsp://192.168.43.1:8554/fpv_stream"));
+    else if (source == VideoSettings::videoSourceMicROM) {
+        const QString cameraIp = qgcApp()->toolbox()->settingsManager()->appSettings()->cameraIp()->rawValue().toString();
+        settingsChanged |= _updateVideoUri(0, QStringLiteral("rtsp://%1:9079/vis").arg(cameraIp));
+    }
     else if (source == VideoSettings::videoDisabled || source == VideoSettings::videoSourceNoVideo)
         settingsChanged |= _updateVideoUri(0, "");
     else {
@@ -861,7 +869,8 @@ VideoManager::_startReceiver(unsigned id)
     const unsigned rtsptimeout = _videoSettings->rtspTimeout()->rawValue().toUInt();
     /* The gstreamer rtsp source will switch to tcp if udp is not available after 5 seconds.
        So we should allow for some negotiation time for rtsp */
-    const unsigned timeout = (source == VideoSettings::videoSourceRTSP ? rtsptimeout : 2 );
+    const bool isRtspSource = (source == VideoSettings::videoSourceRTSP || source == VideoSettings::videoSourceMicROM);
+    const unsigned timeout = (isRtspSource ? rtsptimeout : 2 );
 
     if (id > 1) {
         qCDebug(VideoManagerLog) << "Unsupported receiver id" << id;

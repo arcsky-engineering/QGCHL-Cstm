@@ -31,6 +31,7 @@ const char* VideoSettings::videoSourceParrotDiscovery   = QT_TRANSLATE_NOOP("Vid
 const char* VideoSettings::videoSourceYuneecMantisG     = QT_TRANSLATE_NOOP("VideoSettings", "Yuneec Mantis G");
 const char* VideoSettings::videoSourceHerelinkAirUnit   = QT_TRANSLATE_NOOP("VideoSettings", "Herelink AirUnit");
 const char* VideoSettings::videoSourceHerelinkHotspot   = QT_TRANSLATE_NOOP("VideoSettings", "Herelink Hotspot");
+const char* VideoSettings::videoSourceMicROM            = QT_TRANSLATE_NOOP("VideoSettings", "micROM UV Camera");
 
 DECLARE_SETTINGGROUP(Video, "Video")
 {
@@ -49,6 +50,7 @@ DECLARE_SETTINGGROUP(Video, "Video")
     videoSourceList.append(videoSource3DRSolo);
     videoSourceList.append(videoSourceParrotDiscovery);
     videoSourceList.append(videoSourceYuneecMantisG);
+    videoSourceList.append(videoSourceMicROM);
 #endif
 
 #ifdef QGC_HERELINK_AIRUNIT_VIDEO
@@ -244,6 +246,11 @@ bool VideoSettings::streamConfigured(void)
     //-- If Herelink Hotspot, good to go
     if(vSource == videoSourceHerelinkHotspot) {
         qCDebug(VideoManagerLog) << "Stream configured for Herelink Hotspot";
+        return true;
+    }
+    //-- micROM camera derives its RTSP URL from the configured camera IP (always has a default)
+    if(vSource == videoSourceMicROM) {
+        qCDebug(VideoManagerLog) << "Stream configured for micROM UV Camera";
         return true;
     }
     return false;

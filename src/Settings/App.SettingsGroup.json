@@ -356,6 +356,13 @@
     "default":          false
 },
 {
+    "name":             "cameraIp",
+    "shortDesc":        "micROM Camera IP",
+    "longDesc":         "IP address of the OFIL micROM camera. Drives both the UDP command socket and the RTSP video URL. On a secondary controller set this to the relay address (e.g. 192.168.43.1).",
+    "type":             "string",
+    "default":          "192.168.144.2"
+},
+{
     "name":             "enableRIDOnConnect",
     "shortDesc":        "Enable Remote ID on vehicle connect",
     "longDesc":         "When enabled, Remote ID messages will be sent immediately on vehicle connection without waiting for the RID device to respond first.",

@@ -198,6 +198,19 @@ Rectangle {
                                 property Fact _showMicROMIndicator: QGroundControl.settingsManager.appSettings.showMicROMIndicator
                             }
 
+                            RowLayout {
+                                spacing:    ScreenTools.defaultFontPixelWidth
+                                visible:    QGroundControl.settingsManager.appSettings.showMicROMIndicator.rawValue
+
+                                QGCLabel {
+                                    text:       qsTr("micROM Camera IP")
+                                }
+                                FactTextField {
+                                    Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 15
+                                    fact:                   QGroundControl.settingsManager.appSettings.cameraIp
+                                }
+                            }
+
                             FactCheckBox {
                                 text:       qsTr("Enable Remote ID on vehicle connect")
                                 visible:    _enableRIDOnConnect.visible

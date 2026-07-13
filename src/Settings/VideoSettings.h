@@ -58,9 +58,11 @@ public:
     Q_PROPERTY(QString  mpegtsVideoSource       READ mpegtsVideoSource      CONSTANT)
     Q_PROPERTY(QString  disabledVideoSource     READ disabledVideoSource    CONSTANT)
     Q_PROPERTY(QString  herelinkAirUnitVideoSource READ herelinkAirUnitVideoSource CONSTANT)
+    Q_PROPERTY(QString  micROMVideoSource       READ micROMVideoSource      CONSTANT)
 
     bool     streamConfigured       ();
     QString  rtspVideoSource        () { return videoSourceRTSP; }
+    QString  micROMVideoSource      () { return videoSourceMicROM; }
     QString  udp264VideoSource      () { return videoSourceUDPH264; }
     QString  udp265VideoSource      () { return videoSourceUDPH265; }
     QString  tcpVideoSource         () { return videoSourceTCP; }
@@ -80,6 +82,7 @@ public:
     static const char* videoSourceYuneecMantisG;
     static const char* videoSourceHerelinkAirUnit;
     static const char* videoSourceHerelinkHotspot;
+    static const char* videoSourceMicROM;
 
 signals:
     void streamConfiguredChanged    (bool configured);
