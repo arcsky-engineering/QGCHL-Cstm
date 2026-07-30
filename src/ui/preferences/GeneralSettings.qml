@@ -200,7 +200,6 @@ Rectangle {
 
                             RowLayout {
                                 spacing:    ScreenTools.defaultFontPixelWidth
-                                visible:    QGroundControl.settingsManager.appSettings.showMicROMIndicator.rawValue
 
                                 QGCLabel {
                                     text:       qsTr("micROM Camera IP")
@@ -231,13 +230,6 @@ Rectangle {
                                 fact:       _autoLoadMissionOnConnect
                                 visible:    _autoLoadMissionOnConnect.visible
                                 property Fact _autoLoadMissionOnConnect: QGroundControl.settingsManager.flyViewSettings.autoLoadMissionOnConnect
-                            }
-
-                            FactCheckBox {
-                                text:       qsTr("Update home position based on device location. This will affect return to home")
-                                fact:       _updateHomePosition
-                                visible:    _updateHomePosition.visible
-                                property Fact _updateHomePosition: QGroundControl.settingsManager.flyViewSettings.updateHomePosition
                             }
 
                             FactCheckBox {
@@ -1501,6 +1493,38 @@ Rectangle {
                                     _userBrandImageIndoor.rawValue = ""
                                     _userBrandImageOutdoor.rawValue = ""
                                 }
+                            }
+                        }
+                    }
+
+                    // Placed at the very bottom of the page on purpose. When returning from the Fly
+                    // View the "Application Settings" button sits over the top of the settings list,
+                    // so a setting this consequential must not be within accidental-click range.
+                    Item { width: 1; height: _margins; visible: homePositionSectionLabel.visible }
+                    QGCLabel {
+                        id:         homePositionSectionLabel
+                        text:       qsTr("Home Position")
+                        visible:    QGroundControl.settingsManager.flyViewSettings.updateHomePosition.visible
+                    }
+                    Rectangle {
+                        Layout.preferredHeight: homePositionCol.height + (_margins * 2)
+                        Layout.preferredWidth:  homePositionCol.width + (_margins * 2)
+                        color:                  qgcPal.windowShade
+                        visible:                homePositionSectionLabel.visible
+                        Layout.fillWidth:       true
+
+                        ColumnLayout {
+                            id:                         homePositionCol
+                            anchors.margins:            _margins
+                            anchors.top:                parent.top
+                            anchors.horizontalCenter:   parent.horizontalCenter
+                            spacing:                    _margins
+
+                            FactCheckBox {
+                                text:       qsTr("Update home position based on device location. This will affect return to home")
+                                fact:       _updateHomePosition
+                                visible:    _updateHomePosition.visible
+                                property Fact _updateHomePosition: QGroundControl.settingsManager.flyViewSettings.updateHomePosition
                             }
                         }
                     }
