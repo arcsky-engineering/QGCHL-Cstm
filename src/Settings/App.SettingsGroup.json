@@ -350,8 +350,8 @@
 },
 {
     "name":             "showMicROMIndicator",
-    "shortDesc":        "Show micROM UV Camera indicator",
-    "longDesc":         "If enabled, the micROM UV camera control indicator will be shown in the toolbar.",
+    "shortDesc":        "Enable micROM UV Camera Interface",
+    "longDesc":         "If enabled, the micROM UV camera interface is created on startup and its control indicator is shown in the toolbar. Changing this requires an application restart to take effect.",
     "type":             "bool",
     "default":          false
 },

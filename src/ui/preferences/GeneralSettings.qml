@@ -191,7 +191,8 @@ Rectangle {
                             }
 
                             FactCheckBox {
-                                text:       qsTr("Show micROM UV Camera indicator")
+                                id:         showMicROMCheckBox
+                                text:       qsTr("Enable micROM UV Camera Interface")
                                 visible:    _showMicROMIndicator.visible
                                 fact:       _showMicROMIndicator
 
@@ -199,14 +200,25 @@ Rectangle {
                             }
 
                             RowLayout {
+                                id:         micROMIpRow
                                 spacing:    ScreenTools.defaultFontPixelWidth
+                                // Only meaningful when the micROM interface is turned on
+                                visible:    showMicROMCheckBox.visible && showMicROMCheckBox.fact.rawValue
+
+                                property Fact _cameraIp: QGroundControl.settingsManager.appSettings.cameraIp
 
                                 QGCLabel {
                                     text:       qsTr("micROM Camera IP")
                                 }
                                 FactTextField {
                                     Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 15
-                                    fact:                   QGroundControl.settingsManager.appSettings.cameraIp
+                                    fact:                   micROMIpRow._cameraIp
+                                }
+                                QGCButton {
+                                    text:       qsTr("Default")
+                                    // Reads the default from App.SettingsGroup.json rather than a
+                                    // literal, so there is only one place to change the address.
+                                    onClicked:  micROMIpRow._cameraIp.rawValue = micROMIpRow._cameraIp.defaultValue
                                 }
                             }
 
