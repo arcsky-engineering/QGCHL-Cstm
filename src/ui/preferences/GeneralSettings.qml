@@ -1541,14 +1541,30 @@ Rectangle {
                         }
                     }
 
+                    // Version is the last section on purpose. It's the one thing support
+                    // asks for first, so it lives at a predictable place on the page.
                     Item { width: 1; height: _margins }
                     QGCLabel {
-                        text:               qsTr("%1 Version").arg(QGroundControl.appName)
-                        Layout.alignment:   Qt.AlignHCenter
+                        text:       qsTr("%1 Version").arg(QGroundControl.appName)
                     }
-                    QGCLabel {
-                        text:               QGroundControl.qgcVersion
-                        Layout.alignment:   Qt.AlignHCenter
+                    Rectangle {
+                        Layout.preferredHeight: versionCol.height + (_margins * 2)
+                        Layout.preferredWidth:  versionCol.width + (_margins * 2)
+                        color:                  qgcPal.windowShade
+                        Layout.fillWidth:       true
+
+                        ColumnLayout {
+                            id:                         versionCol
+                            anchors.margins:            _margins
+                            anchors.top:                parent.top
+                            anchors.horizontalCenter:   parent.horizontalCenter
+                            spacing:                    _margins
+
+                            QGCLabel {
+                                text:               QGroundControl.qgcVersion
+                                Layout.alignment:   Qt.AlignHCenter
+                            }
+                        }
                     }
                 } // settingsColumn
             }

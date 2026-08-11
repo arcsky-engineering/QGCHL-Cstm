@@ -270,12 +270,18 @@ void QGroundControlQmlGlobal::setFlightMapZoom(double zoom)
 
 QString QGroundControlQmlGlobal::qgcVersion(void) const
 {
+    // The version numbers themselves are owned by custom/custom.pri. This only
+    // assembles them for display.
     QString versionStr = qgcApp()->applicationVersion();
-    versionStr += QStringLiteral(" %1").arg(tr("Herelink"));
-#ifdef __androidArm32__
-    versionStr += QStringLiteral(" %1").arg(tr("32 bit Herelink"));
-#elif __androidArm64__
-    versionStr += QStringLiteral(" %1").arg(tr("64 bit Herelink"));
+    if (!versionStr.startsWith(QStringLiteral("v"))) {
+        versionStr.prepend(QStringLiteral("v"));
+    }
+#ifdef ARCSKY_QGC_BASE_VERSION_STR
+    versionStr += QStringLiteral("  (QGC %1)").arg(QStringLiteral(ARCSKY_QGC_BASE_VERSION_STR));
+#endif
+    // Only defined for dev builds, i.e. HEAD is not sitting on a version tag.
+#if defined(ARCSKY_GIT_BRANCH_STR) && defined(ARCSKY_GIT_HASH_STR)
+    versionStr += QStringLiteral("  %1 %2").arg(QStringLiteral(ARCSKY_GIT_BRANCH_STR), QStringLiteral(ARCSKY_GIT_HASH_STR));
 #endif
     return versionStr;
 }
