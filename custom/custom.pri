@@ -66,13 +66,12 @@ AndroidBuild {
         error(Arcsky patch version larger than 2 digits: $${ARCSKY_VER_PATCH})
     }
 
-    # Bitness prefix is 66/34 instead of 64/32 to stay compatible with the
-    # upstream version code format. See QGCCommon.pri for the history.
-    equals(ANDROID_TARGET_ARCH, arm64-v8a) {
-        ARCSKY_ANDROID_BITNESS = 66
-    } else {
-        ARCSKY_ANDROID_BITNESS = 34
-    }
+    # Pinned to 66 (upstream's marker for 64-bit; see QGCCommon.pri for why it
+    # isn't 64). Deliberately not derived from ANDROID_TARGET_ARCH: multi-ABI
+    # kits don't reliably set it, and falling through to the 32-bit prefix of 34
+    # would produce a version code lower than the 660000000 already installed in
+    # the field, which Android rejects as a downgrade. This must only ever go up.
+    ARCSKY_ANDROID_BITNESS = 66
 
     ARCSKY_ANDROID_PATCH = $${ARCSKY_VER_PATCH}
     lessThan(ARCSKY_ANDROID_PATCH, 10) {
