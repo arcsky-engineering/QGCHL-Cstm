@@ -243,13 +243,19 @@ Item {
         onPhotoTaken:   photoFlashAnimation.restart()
     }
 
-    // Settings fly-out. Opens to the left because the parent widget is pinned to
-    // the bottom right corner of the fly view.
+    // Settings fly-out. Opens upward rather than to the left, for two reasons.
+    // In bottomMode the telemetry values bar runs along the bottom strip, which
+    // is where a leftward fly-out lands. And it is declared after this widget in
+    // FlyViewWidgetLayer, so at equal z it paints on top and the fly-out
+    // disappears behind it on compressed layouts like the Herelink.
+    //
+    // Upward, the only neighbour is the instrument panel, which is declared
+    // before this widget and so is painted over correctly without touching z.
     Rectangle {
         id:                     flyout
-        anchors.right:          parent.left
-        anchors.rightMargin:    ScreenTools.defaultFontPixelWidth
-        anchors.bottom:         parent.bottom
+        anchors.bottom:         parent.top
+        anchors.bottomMargin:   ScreenTools.defaultFontPixelWidth
+        anchors.right:          parent.right
         width:                  flyoutColumn.implicitWidth + (ScreenTools.defaultFontPixelWidth * 2)
         height:                 flyoutColumn.implicitHeight + (ScreenTools.defaultFontPixelWidth * 2)
         radius:                 ScreenTools.defaultFontPixelHeight / 2
@@ -263,10 +269,10 @@ Item {
 
         Behavior on opacity { NumberAnimation { duration: 150 } }
 
-        // Slide in from behind the widget as it fades up
+        // Slide up from behind the widget as it fades in
         transform: Translate {
-            x: _flyoutOpen ? 0 : ScreenTools.defaultFontPixelWidth * 3
-            Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+            y: _flyoutOpen ? 0 : ScreenTools.defaultFontPixelHeight * 2
+            Behavior on y { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
         }
 
         ColumnLayout {
@@ -302,7 +308,9 @@ Item {
                 to:                 255
                 value:              _micromController ? _micromController.gain : 130
                 valueText:          liveValue.toFixed(0) + " / 255"
-                hint:               qsTr("Higher gain = more UV sensitivity")
+                // No hint here, unlike the toolbar popup. Opening upward from a
+                // widget already at the bottom of a short screen makes height
+                // the scarce dimension, and this is not the place to read prose.
                 onValueSet:         _micromController.setGain(newValue)
             }
 
