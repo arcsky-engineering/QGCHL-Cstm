@@ -99,15 +99,20 @@ Item {
             QGCColoredImage {
                 source:             "/res/gear-black.svg"
                 mipmap:             true
-                height:             ScreenTools.defaultFontPixelHeight
+                height:             ScreenTools.defaultFontPixelHeight * 3
                 width:              height
                 sourceSize.height:  height
                 fillMode:           Image.PreserveAspectFit
                 color:              _flyoutOpen ? qgcPal.colorGreen : qgcPal.text
+                // Dimmed rather than hidden when there is no link: the settings
+                // it opens can't be sent, and a control that looks live but
+                // silently does nothing is worse than one that looks disabled.
+                opacity:            _connected ? 1 : 0.4
                 Layout.alignment:   Qt.AlignVCenter
 
                 QGCMouseArea {
                     fillItem:   parent
+                    enabled:    _connected
                     onClicked:  _flyoutOpen = !_flyoutOpen
                 }
             }

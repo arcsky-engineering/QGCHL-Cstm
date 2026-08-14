@@ -32,14 +32,20 @@ Rectangle {
     property real   _margins:                                   ScreenTools.defaultFontPixelHeight / 2
     property var    _activeVehicle:                             QGroundControl.multiVehicleManager.activeVehicle
 
-    // The OFIL micROM UV camera takes this widget over entirely when it is both
-    // the selected video source and answering keepalives. Its capture commands
-    // go over UDP to the camera and record to the camera's own SD card, which
-    // has nothing to do with the stream recording the stock controls below do,
-    // so the two must never be on screen together.
+    // The OFIL micROM UV camera takes this widget over in two cases: when it is
+    // the selected video source, and whenever it is connected regardless of
+    // source. The second case matters with more than one RTSP stream in play,
+    // where the micROM can be the payload you are shooting with even though the
+    // stream on screen is a different camera.
+    //
+    // Selected but not connected still shows the micROM layout, with its
+    // controls inert, rather than falling back to the stock ones. Those record
+    // the RTSP stream to this device, which is a different destination from the
+    // camera's SD card, so offering them here would hand you a record button
+    // that quietly does the wrong thing.
     property var    _micromController:                          QGroundControl.micromController
-    property bool   _micromActive:                              _micromController && _micromController.connected &&
-                                                                    _videoStreamSettings.videoSource.rawValue === _videoStreamSettings.micROMVideoSource
+    property bool   _micromIsVideoSource:                       _videoStreamSettings.videoSource.rawValue === _videoStreamSettings.micROMVideoSource
+    property bool   _micromActive:                              _micromController ? (_micromIsVideoSource || _micromController.connected) : false
 
     // The following properties relate to a simple camera
     property var    _flyViewSettings:                           QGroundControl.settingsManager.flyViewSettings
