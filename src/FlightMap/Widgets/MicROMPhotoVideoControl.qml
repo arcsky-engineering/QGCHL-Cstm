@@ -42,6 +42,12 @@ Item {
     property real _buttonSize:        ScreenTools.defaultFontPixelWidth * 6
     property bool _flyoutOpen:        false
 
+    /// True while the fly-out is on screen, including its fade out. The host
+    /// widget lifts its z above the instrument panel for exactly this long;
+    /// keying that off _flyoutOpen instead would drop z the instant the toggle
+    /// flipped and the fading panel would snap behind the gauges.
+    property alias flyoutVisible:     flyout.visible
+
     // Elapsed recording time. The camera reports that it is recording but not
     // for how long, so we count locally from the moment it confirms the start.
     property int  _recordSeconds:     0

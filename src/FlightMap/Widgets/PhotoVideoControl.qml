@@ -27,6 +27,15 @@ Rectangle {
     height:     (_micromActive ? micromLoader.height : mainLayout.height) + (_margins * 2)
     color:      Qt.rgba(qgcPal.window.r, qgcPal.window.g, qgcPal.window.b, 0.5)
     radius:     _margins
+
+    // Normally this widget sits at the default z of 0, below the instrument
+    // panel and tool strip which both claim zOrderWidgets. That is fine for the
+    // panel itself, but the micROM fly-out extends beyond these bounds and would
+    // open behind the attitude gauges. Lift above them only while the fly-out is
+    // showing, so the stock layout's stacking is untouched for every other
+    // camera type. Deliberately far below the zOrderTopMost overlays: vehicle
+    // warnings and guided action confirmations must never be covered by this.
+    z:          (micromLoader.item && micromLoader.item.flyoutVisible) ? QGroundControl.zOrderWidgets + 1 : 0
     visible:    _flyViewSettings.showPhotoVideoControl.rawValue && (_mavlinkCamera || _videoStreamAvailable || _simpleCameraAvailable || _micromActive) && multiVehiclePanelSelector.showSingleVehiclePanel
 
     property real   _margins:                                   ScreenTools.defaultFontPixelHeight / 2
