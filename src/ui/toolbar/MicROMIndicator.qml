@@ -132,10 +132,14 @@ Item {
                     Layout.alignment:   Qt.AlignHCenter
 
                     QGCButton {
-                        text:               qsTr("Take Photo")
+                        // Shows the lockout countdown in place of the label, so a
+                        // dead button explains itself instead of looking broken
+                        text:               _micromController && !_micromController.commandReady ?
+                                                qsTr("Wait %1s").arg(_micromController.cooldownRemaining) :
+                                                qsTr("Take Photo")
                         Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 14
                         Layout.preferredHeight: ScreenTools.defaultFontPixelHeight * 2.5
-                        enabled:            _micromController && _micromController.connected
+                        enabled:            _micromController && _micromController.connected && _micromController.commandReady
                         onClicked: {
                             if (_micromController) {
                                 _micromController.takePhoto()
@@ -144,11 +148,13 @@ Item {
                     }
 
                     QGCButton {
-                        text:               _micromController && _micromController.recording ? qsTr("Stop Recording") : qsTr("Start Recording")
+                        text:               _micromController && !_micromController.commandReady ?
+                                                qsTr("Wait %1s").arg(_micromController.cooldownRemaining) :
+                                                (_micromController && _micromController.recording ? qsTr("Stop Recording") : qsTr("Start Recording"))
                         Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 16
                         Layout.preferredHeight: ScreenTools.defaultFontPixelHeight * 2.5
                         highlighted:        _micromController && _micromController.recording
-                        enabled:            _micromController && _micromController.connected
+                        enabled:            _micromController && _micromController.connected && _micromController.commandReady
                         onClicked: {
                             if (_micromController) {
                                 if (_micromController.recording) {

@@ -37,6 +37,12 @@ MicROMController::MicROMController(QObject* parent)
     connect(_keepaliveTimer, &QTimer::timeout, this, &MicROMController::_sendKeepalive);
     _keepaliveTimer->start(KEEPALIVE_INTERVAL_MS);
 
+    // Ticks down the post-capture lockout, once per second so the UI can show
+    // the remaining time rather than just greying a button out
+    _cooldownTimer = new QTimer(this);
+    _cooldownTimer->setInterval(1000);
+    connect(_cooldownTimer, &QTimer::timeout, this, &MicROMController::_tickCooldown);
+
     // Load persisted RC trigger channel settings
     QSettings settings;
     settings.beginGroup("MicROM");
@@ -76,6 +82,9 @@ MicROMController::~MicROMController()
     if (_keepaliveTimer) {
         _keepaliveTimer->stop();
     }
+    if (_cooldownTimer) {
+        _cooldownTimer->stop();
+    }
 }
 
 void MicROMController::setCameraIP(const QString& ip)
@@ -88,30 +97,78 @@ void MicROMController::setCameraIP(const QString& ip)
     }
 }
 
+void MicROMController::_startCooldown()
+{
+    _cooldownRemaining = COMMAND_COOLDOWN_SEC;
+    _cooldownTimer->start();
+    emit cooldownRemainingChanged();
+    emit commandReadyChanged();
+}
+
+void MicROMController::_tickCooldown()
+{
+    if (_cooldownRemaining <= 0) {
+        _cooldownTimer->stop();
+        return;
+    }
+
+    _cooldownRemaining--;
+    emit cooldownRemainingChanged();
+
+    if (_cooldownRemaining == 0) {
+        _cooldownTimer->stop();
+        emit commandReadyChanged();
+    }
+}
+
 void MicROMController::takePhoto()
 {
+    // Guarded here rather than in the UI so RC triggers are covered too: a
+    // switch flick is cheaper than a screen tap and is the more likely source
+    // of back-to-back commands.
+    if (!commandReady()) {
+        qDebug() << "MicROMController: Photo ignored, " << _cooldownRemaining << "s of lockout left";
+        _setLastError(QString("Camera busy - wait %1s before the next capture").arg(_cooldownRemaining));
+        return;
+    }
+
     qDebug() << "MicROMController: Taking photo";
     _setLastError("");
     _sendCommand("IC_KSP");
+    _startCooldown();
 }
 
 void MicROMController::startVideo()
 {
+    if (!commandReady()) {
+        qDebug() << "MicROMController: Video start ignored," << _cooldownRemaining << "s of lockout left";
+        _setLastError(QString("Camera busy - wait %1s before the next capture").arg(_cooldownRemaining));
+        return;
+    }
+
     qDebug() << "MicROMController: Starting video recording";
     _setLastError("");
     _pendingVideoStart = true;
     _pendingVideoStop = false;
     _sendCommand("IC_KSV");
+    _startCooldown();
 }
 
 void MicROMController::stopVideo()
 {
+    if (!commandReady()) {
+        qDebug() << "MicROMController: Video stop ignored," << _cooldownRemaining << "s of lockout left";
+        _setLastError(QString("Camera busy - wait %1s before stopping").arg(_cooldownRemaining));
+        return;
+    }
+
     qDebug() << "MicROMController: Stopping video recording";
     _setLastError("");
     _pendingVideoStop = true;
     _pendingVideoStart = false;
     // Send the same command to toggle off
     _sendCommand("IC_KSV");
+    _startCooldown();
 }
 
 void MicROMController::setZoom(int value)
@@ -299,20 +356,26 @@ void MicROMController::_parseResponse(const QByteArray& data)
     if (response.startsWith("CI_KRVERR") || (response.contains("KRV") && response.contains("ERR"))) {
         qDebug() << "MicROMController: Video error received:" << response;
 
-        // Determine what failed based on pending flags
+        // Determine what failed based on pending flags.
+        //
+        // These no longer blame the SD card. Logs show the common causes are
+        // timing: a start refused for roughly 15 seconds after a stop while the
+        // previous clip is finalised, and a stop refused inside the first ~10
+        // seconds of a clip. Pointing at the card sent operators hunting for a
+        // hardware fault that was not there.
         if (_pendingVideoStart) {
             // Failed to start - recording stays false
-            _setLastError("Failed to start video recording - check SD card");
+            _setLastError("Recording start rejected - camera may still be saving the last clip");
             _setRecording(false);
             qDebug() << "MicROMController: Failed to start recording";
         } else if (_pendingVideoStop) {
             // Failed to stop - recording stays true (camera is still recording!)
-            _setLastError("Failed to stop video recording");
+            _setLastError("Recording stop rejected - clip may be too short, still recording");
             _setRecording(true);
             qDebug() << "MicROMController: Failed to stop recording - camera still recording";
         } else {
-            // Unknown context - default to false and show generic error
-            _setLastError("Video recording error - check SD card");
+            // Unknown context - show a generic error without guessing a cause
+            _setLastError("Video recording error - camera busy or SD card problem");
             qDebug() << "MicROMController: Video error with no pending context";
         }
 
@@ -366,17 +429,20 @@ void MicROMController::_parseResponse(const QByteArray& data)
         return;
     }
 
+    // Photo error response - MUST check before CI_KSP since CI_KSPERR starts
+    // with CI_KSP. With these the other way round the acknowledgement below
+    // swallowed every photo error and reported a failed shot as a success.
+    if (response.contains("KSPERR") || (response.contains("KSP") && response.contains("ERR"))) {
+        qDebug() << "MicROMController: Photo error received:" << response;
+        _setLastError("Photo rejected - camera busy or SD card problem");
+        emit photoError();
+        return;
+    }
+
     // Photo command acknowledged
     if (response.startsWith("CI_KSP") || response.startsWith("CI_KRP")) {
         qDebug() << "MicROMController: Photo command acknowledged";
         emit photoTaken();
-        return;
-    }
-
-    // Photo error response
-    if (response.contains("KSPERR") || (response.contains("KSP") && response.contains("ERR"))) {
-        _setLastError("Photo capture error - check SD card");
-        emit photoError();
         return;
     }
 

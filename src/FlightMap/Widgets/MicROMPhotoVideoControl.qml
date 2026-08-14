@@ -39,6 +39,12 @@ Item {
     property bool _sdCardPresent:     _micromController && _micromController.sdCardPresent
     property bool _canShoot:          _connected && _sdCardPresent
 
+    // Seconds left in the camera's post-capture lockout. Firmware 2.35 refuses
+    // captures sent too close together, so the controller holds them off and
+    // counts down here rather than letting the camera reject them.
+    property int  _cooldown:          _micromController ? _micromController.cooldownRemaining : 0
+    property bool _acceptingCommands: _canShoot && _cooldown === 0
+
     property real _buttonSize:        ScreenTools.defaultFontPixelWidth * 6
     property bool _flyoutOpen:        false
 
@@ -68,6 +74,28 @@ Item {
         running:            _root._recording
         onRunningChanged:   if (running) _root._recordSeconds = 0
         onTriggered:        _root._recordSeconds++
+    }
+
+    // Covers a capture button during the lockout with the seconds remaining, so
+    // a blocked press reads as "not yet" rather than as the camera ignoring you.
+    // A Component rather than an inline type: these files import QtQuick 2.11,
+    // where inline components are not available.
+    Component {
+        id: cooldownOverlay
+
+        Rectangle {
+            radius:     width / 2
+            color:      Qt.rgba(0, 0, 0, 0.6)
+            visible:    _root._cooldown > 0
+
+            QGCLabel {
+                anchors.centerIn:   parent
+                text:               _root._cooldown
+                font.pointSize:     ScreenTools.largeFontPointSize
+                font.weight:        Font.Bold
+                color:              "white"
+            }
+        }
     }
 
     ColumnLayout {
@@ -186,9 +214,14 @@ Item {
                     }
                 }
 
+                Loader {
+                    anchors.fill:       parent
+                    sourceComponent:    cooldownOverlay
+                }
+
                 MouseArea {
                     anchors.fill:   parent
-                    enabled:        _canShoot
+                    enabled:        _acceptingCommands
                     onClicked:      _micromController.takePhoto()
                 }
             }
@@ -217,9 +250,14 @@ Item {
                     }
                 }
 
+                Loader {
+                    anchors.fill:       parent
+                    sourceComponent:    cooldownOverlay
+                }
+
                 MouseArea {
                     anchors.fill:   parent
-                    enabled:        _canShoot
+                    enabled:        _acceptingCommands
                     onClicked: {
                         if (_recording) {
                             _micromController.stopVideo()

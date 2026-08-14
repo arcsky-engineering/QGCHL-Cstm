@@ -37,6 +37,8 @@ public:
     Q_PROPERTY(bool     sdCardPresent   READ sdCardPresent  NOTIFY sdCardPresentChanged)
     Q_PROPERTY(int      camTriggerChannel   READ camTriggerChannel   WRITE setCamTriggerChannel   NOTIFY camTriggerChannelChanged)
     Q_PROPERTY(int      videoTriggerChannel READ videoTriggerChannel WRITE setVideoTriggerChannel NOTIFY videoTriggerChannelChanged)
+    Q_PROPERTY(bool     commandReady        READ commandReady        NOTIFY commandReadyChanged)
+    Q_PROPERTY(int      cooldownRemaining   READ cooldownRemaining   NOTIFY cooldownRemainingChanged)
 
     bool    connected() const       { return _connected; }
     bool    recording() const       { return _recording; }
@@ -48,6 +50,13 @@ public:
     bool    sdCardPresent() const   { return _sdCardPresent; }
     int     camTriggerChannel() const   { return _camTriggerChannel; }
     int     videoTriggerChannel() const { return _videoTriggerChannel; }
+
+    /// Firmware 2.35 rejects a capture command sent too soon after the previous
+    /// one, and OFIL report that back-to-back captures can corrupt files, so we
+    /// hold commands off rather than letting the camera refuse them. False while
+    /// that window is open.
+    bool    commandReady() const        { return _cooldownRemaining == 0; }
+    int     cooldownRemaining() const   { return _cooldownRemaining; }
 
     void setCameraIP(const QString& ip);
     void setCamTriggerChannel(int channel);
@@ -76,22 +85,30 @@ signals:
     void videoError();
     void camTriggerChannelChanged();
     void videoTriggerChannelChanged();
+    void commandReadyChanged();
+    void cooldownRemainingChanged();
 
 private slots:
     void _readPendingDatagrams();
     void _sendKeepalive();
     void _activeVehicleChanged(Vehicle* vehicle);
     void _rcChannelsChanged(int channelCount, int pwmValues[18]);
+    void _tickCooldown();
 
 private:
     void _sendCommand(const QString& command);
     void _parseResponse(const QByteArray& data);
     void _setRecording(bool recording);
     void _setLastError(const QString& error);
+    /// Opens the post-capture lockout window. Called after every accepted
+    /// capture command, whether it came from the UI or an RC trigger.
+    void _startCooldown();
 
     QUdpSocket* _sendSocket          = nullptr;
     QUdpSocket* _recvSocket          = nullptr;
     QTimer*     _keepaliveTimer      = nullptr;
+    QTimer*     _cooldownTimer       = nullptr;
+    int         _cooldownRemaining   = 0;      // Seconds left in the capture lockout
 
     QString     _cameraIP            = "192.168.144.2";
     quint16     _sendPort            = 4526;
@@ -121,4 +138,16 @@ private:
 
     static const int KEEPALIVE_INTERVAL_MS   = 5000;
     static const int MAX_KEEPALIVE_MISSES    = 3;
+
+    // Minimum spacing between capture commands. OFIL specify 5 seconds for
+    // stills on firmware 2.35 and report file corruption without it; field
+    // experience says video behaves the same way.
+    //
+    // This is a floor, not the whole story. Logs also show a start being
+    // refused for roughly 15 seconds after a stop while the previous clip is
+    // finalised, and a stop refused inside the first ~10 seconds of a clip.
+    // Those are longer than this window and are not vendor confirmed, so they
+    // are left to be reported honestly through lastError rather than guessed
+    // at here.
+    static const int COMMAND_COOLDOWN_SEC    = 5;
 };
