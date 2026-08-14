@@ -188,142 +188,30 @@ Item {
                 }
 
                 // Zoom control
-                ColumnLayout {
-                    spacing: ScreenTools.defaultFontPixelHeight * 0.25
-                    Layout.fillWidth: true
-
-                    RowLayout {
-                        spacing: ScreenTools.defaultFontPixelWidth
-                        Layout.fillWidth: true
-
-                        QGCLabel {
-                            text:                   qsTr("Zoom:")
-                            Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 8
-                        }
-
-                        QGCLabel {
-                            text:                   zoomSlider.value.toFixed(0) + " / 13"
-                            Layout.fillWidth:       true
-                            horizontalAlignment:    Text.AlignRight
-                        }
-                    }
-
-                    Slider {
-                        id:                     zoomSlider
-                        from:                   0
-                        to:                     13
-                        stepSize:               1
-                        value:                  _micromController ? _micromController.zoom : 0
-                        Layout.preferredWidth:  _sliderWidth
-                        Layout.preferredHeight: ScreenTools.defaultFontPixelHeight * 2
-                        enabled:                _micromController && _micromController.connected
-
-                        background: Rectangle {
-                            x:              zoomSlider.leftPadding
-                            y:              zoomSlider.topPadding + zoomSlider.availableHeight / 2 - height / 2
-                            width:          zoomSlider.availableWidth
-                            height:         ScreenTools.defaultFontPixelHeight * 0.5
-                            radius:         height / 2
-                            color:          qgcPal.windowShade
-
-                            Rectangle {
-                                width:  zoomSlider.visualPosition * parent.width
-                                height: parent.height
-                                color:  qgcPal.buttonHighlight
-                                radius: height / 2
-                            }
-                        }
-
-                        handle: Rectangle {
-                            x:              zoomSlider.leftPadding + zoomSlider.visualPosition * (zoomSlider.availableWidth - width)
-                            y:              zoomSlider.topPadding + zoomSlider.availableHeight / 2 - height / 2
-                            width:          ScreenTools.defaultFontPixelHeight * 1.5
-                            height:         width
-                            radius:         width / 2
-                            color:          zoomSlider.pressed ? qgcPal.buttonHighlight : qgcPal.button
-                            border.color:   qgcPal.buttonText
-                            border.width:   1
-                        }
-
-                        onPressedChanged: {
-                            if (!pressed && _micromController) {
-                                _micromController.setZoom(value)
-                            }
-                        }
-                    }
+                MicROMSlider {
+                    Layout.fillWidth:   true
+                    enabled:            _micromController && _micromController.connected
+                    sliderWidth:        _sliderWidth
+                    label:              qsTr("Zoom:")
+                    from:               0
+                    to:                 13
+                    value:              _micromController ? _micromController.zoom : 0
+                    valueText:          liveValue.toFixed(0) + " / 13"
+                    onValueSet:         _micromController.setZoom(newValue)
                 }
 
                 // Gain/Sensitivity control
-                ColumnLayout {
-                    spacing: ScreenTools.defaultFontPixelHeight * 0.25
-                    Layout.fillWidth: true
-
-                    RowLayout {
-                        spacing: ScreenTools.defaultFontPixelWidth
-                        Layout.fillWidth: true
-
-                        QGCLabel {
-                            text:                   qsTr("Gain (Sensitivity):")
-                            Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 16
-                        }
-
-                        QGCLabel {
-                            text:                   gainSlider.value.toFixed(0) + " / 255"
-                            Layout.fillWidth:       true
-                            horizontalAlignment:    Text.AlignRight
-                        }
-                    }
-
-                    Slider {
-                        id:                     gainSlider
-                        from:                   0
-                        to:                     255
-                        stepSize:               1
-                        value:                  _micromController ? _micromController.gain : 130
-                        Layout.preferredWidth:  _sliderWidth
-                        Layout.preferredHeight: ScreenTools.defaultFontPixelHeight * 2
-                        enabled:                _micromController && _micromController.connected
-
-                        background: Rectangle {
-                            x:              gainSlider.leftPadding
-                            y:              gainSlider.topPadding + gainSlider.availableHeight / 2 - height / 2
-                            width:          gainSlider.availableWidth
-                            height:         ScreenTools.defaultFontPixelHeight * 0.5
-                            radius:         height / 2
-                            color:          qgcPal.windowShade
-
-                            Rectangle {
-                                width:  gainSlider.visualPosition * parent.width
-                                height: parent.height
-                                color:  qgcPal.buttonHighlight
-                                radius: height / 2
-                            }
-                        }
-
-                        handle: Rectangle {
-                            x:              gainSlider.leftPadding + gainSlider.visualPosition * (gainSlider.availableWidth - width)
-                            y:              gainSlider.topPadding + gainSlider.availableHeight / 2 - height / 2
-                            width:          ScreenTools.defaultFontPixelHeight * 1.5
-                            height:         width
-                            radius:         width / 2
-                            color:          gainSlider.pressed ? qgcPal.buttonHighlight : qgcPal.button
-                            border.color:   qgcPal.buttonText
-                            border.width:   1
-                        }
-
-                        onPressedChanged: {
-                            if (!pressed && _micromController) {
-                                _micromController.setGain(value)
-                            }
-                        }
-                    }
-
-                    QGCLabel {
-                        text:               qsTr("Higher gain = more UV sensitivity")
-                        font.pointSize:     ScreenTools.smallFontPointSize
-                        Layout.alignment:   Qt.AlignHCenter
-                        opacity:            0.7
-                    }
+                MicROMSlider {
+                    Layout.fillWidth:   true
+                    enabled:            _micromController && _micromController.connected
+                    sliderWidth:        _sliderWidth
+                    label:              qsTr("Gain (Sensitivity):")
+                    from:               0
+                    to:                 255
+                    value:              _micromController ? _micromController.gain : 130
+                    valueText:          liveValue.toFixed(0) + " / 255"
+                    hint:               qsTr("Higher gain = more UV sensitivity")
+                    onValueSet:         _micromController.setGain(newValue)
                 }
 
                 // Separator
@@ -334,112 +222,23 @@ Item {
                 }
 
                 // UV Color Palette control
-                ColumnLayout {
-                    id:         uvColorLayout
-                    spacing:    ScreenTools.defaultFontPixelHeight * 0.25
-                    Layout.fillWidth: true
+                MicROMSlider {
+                    Layout.fillWidth:   true
+                    enabled:            _micromController && _micromController.connected
+                    sliderWidth:        _sliderWidth
+                    label:              qsTr("UV Color:")
+                    from:               0
+                    to:                 7
+                    trackColors:        uvColors
+                    value:              _micromController ? _micromController.uvColor : 0
+                    valueText:          uvColorNames[liveValue] || ""
+                    hint:               qsTr("Color of UV detection overlay")
+                    onValueSet:         _micromController.setUVColor(newValue)
 
-                    // Color palette property to map values 0-7 to colors
-                    property var uvColors: ["#FF0000", "#FF8000", "#FFFF00", "#00FF00", "#00FFFF", "#0080FF", "#8000FF", "#FF00FF"]
-                    property var uvColorNames: ["Red", "Orange", "Yellow", "Green", "Light Blue", "Blue", "Purple", "Pink"]
-
-                    function getUVColor(idx) {
-                        return uvColors[idx] || "#FF0000"
-                    }
-
-                    function getUVColorName(idx) {
-                        return uvColorNames[idx] || "Red"
-                    }
-
-                    RowLayout {
-                        spacing: ScreenTools.defaultFontPixelWidth
-                        Layout.fillWidth: true
-
-                        QGCLabel {
-                            text:               qsTr("UV Color:")
-                            font.pointSize:     ScreenTools.defaultFontPointSize
-                            font.weight:        Font.Medium
-                        }
-
-                        QGCLabel {
-                            property int colorIndex: _micromController ? _micromController.uvColor : 0
-                            text:                   uvColorLayout.getUVColorName(colorIndex)
-                            Layout.fillWidth:       true
-                            horizontalAlignment:    Text.AlignRight
-                        }
-                    }
-
-                    Slider {
-                        id:                     uvColorSlider
-                        from:                   0
-                        to:                     7
-                        stepSize:               1
-                        value:                  _micromController ? _micromController.uvColor : 0
-                        Layout.preferredWidth:  _sliderWidth
-                        Layout.preferredHeight: ScreenTools.defaultFontPixelHeight * 2
-                        enabled:                _micromController && _micromController.connected
-
-                        background: Item {
-                            x:              uvColorSlider.leftPadding
-                            y:              uvColorSlider.topPadding + uvColorSlider.availableHeight / 2 - height / 2
-                            width:          uvColorSlider.availableWidth
-                            height:         ScreenTools.defaultFontPixelHeight * 0.5
-
-                            // Use a Row of colored rectangles for horizontal gradient (Qt 5.11 compatible)
-                            Row {
-                                anchors.fill: parent
-                                Repeater {
-                                    model: 8
-                                    Rectangle {
-                                        width:  parent.width / 8
-                                        height: parent.height
-                                        color:  uvColorLayout.getUVColor(index)
-                                        radius: index === 0 ? height / 2 : (index === 7 ? height / 2 : 0)
-
-                                        // Round only left corners for first, right corners for last
-                                        Rectangle {
-                                            visible:        index === 0
-                                            anchors.right:  parent.right
-                                            width:          parent.width / 2
-                                            height:         parent.height
-                                            color:          parent.color
-                                        }
-                                        Rectangle {
-                                            visible:        index === 7
-                                            anchors.left:   parent.left
-                                            width:          parent.width / 2
-                                            height:         parent.height
-                                            color:          parent.color
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        handle: Rectangle {
-                            x:              uvColorSlider.leftPadding + uvColorSlider.visualPosition * (uvColorSlider.availableWidth - width)
-                            y:              uvColorSlider.topPadding + uvColorSlider.availableHeight / 2 - height / 2
-                            width:          ScreenTools.defaultFontPixelHeight * 1.5
-                            height:         width
-                            radius:         width / 2
-                            color:          uvColorSlider.pressed ? qgcPal.buttonHighlight : qgcPal.button
-                            border.color:   qgcPal.buttonText
-                            border.width:   1
-                        }
-
-                        onPressedChanged: {
-                            if (!pressed && _micromController) {
-                                _micromController.setUVColor(value)
-                            }
-                        }
-                    }
-
-                    QGCLabel {
-                        text:               qsTr("Color of UV detection overlay")
-                        font.pointSize:     ScreenTools.smallFontPointSize
-                        Layout.alignment:   Qt.AlignHCenter
-                        opacity:            0.7
-                    }
+                    property var uvColors:     ["#FF0000", "#FF8000", "#FFFF00", "#00FF00",
+                                                "#00FFFF", "#0080FF", "#8000FF", "#FF00FF"]
+                    property var uvColorNames: [qsTr("Red"),        qsTr("Orange"), qsTr("Yellow"), qsTr("Green"),
+                                                qsTr("Light Blue"), qsTr("Blue"),   qsTr("Purple"), qsTr("Pink")]
                 }
 
                 // Separator

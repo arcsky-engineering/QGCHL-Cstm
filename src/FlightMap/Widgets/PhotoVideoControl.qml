@@ -24,13 +24,22 @@ import QGroundControl.FactSystem        1.0
 import QGroundControl.FactControls      1.0
 
 Rectangle {
-    height:     mainLayout.height + (_margins * 2)
+    height:     (_micromActive ? micromLoader.height : mainLayout.height) + (_margins * 2)
     color:      Qt.rgba(qgcPal.window.r, qgcPal.window.g, qgcPal.window.b, 0.5)
     radius:     _margins
-    visible:    _flyViewSettings.showPhotoVideoControl.rawValue && (_mavlinkCamera || _videoStreamAvailable || _simpleCameraAvailable) && multiVehiclePanelSelector.showSingleVehiclePanel
+    visible:    _flyViewSettings.showPhotoVideoControl.rawValue && (_mavlinkCamera || _videoStreamAvailable || _simpleCameraAvailable || _micromActive) && multiVehiclePanelSelector.showSingleVehiclePanel
 
     property real   _margins:                                   ScreenTools.defaultFontPixelHeight / 2
     property var    _activeVehicle:                             QGroundControl.multiVehicleManager.activeVehicle
+
+    // The OFIL micROM UV camera takes this widget over entirely when it is both
+    // the selected video source and answering keepalives. Its capture commands
+    // go over UDP to the camera and record to the camera's own SD card, which
+    // has nothing to do with the stream recording the stock controls below do,
+    // so the two must never be on screen together.
+    property var    _micromController:                          QGroundControl.micromController
+    property bool   _micromActive:                              _micromController && _micromController.connected &&
+                                                                    _videoStreamSettings.videoSource.rawValue === _videoStreamSettings.micROMVideoSource
 
     // The following properties relate to a simple camera
     property var    _flyViewSettings:                           QGroundControl.settingsManager.flyViewSettings
@@ -161,7 +170,7 @@ Rectangle {
         sourceSize.height:  height
         color:              qgcPal.text
         fillMode:           Image.PreserveAspectFit
-        visible:            !_onlySimpleCameraAvailable
+        visible:            !_onlySimpleCameraAvailable && !_micromActive
 
         QGCMouseArea {
             fillItem:   parent
@@ -169,8 +178,23 @@ Rectangle {
         }
     }
 
+    // micROM capture controls, with their own settings fly-out.
+    // Spans the full panel width rather than hugging its content, so the
+    // fly-out opens clear of the panel's left edge instead of over it.
+    Loader {
+        id:                 micromLoader
+        anchors.margins:    _margins
+        anchors.top:        parent.top
+        anchors.left:       parent.left
+        anchors.right:      parent.right
+        active:             _micromActive
+        visible:            _micromActive
+        source:             "qrc:/qml/QGroundControl/FlightMap/MicROMPhotoVideoControl.qml"
+    }
+
     ColumnLayout {
         id:                         mainLayout
+        visible:                    !_micromActive
         anchors.margins:            _margins
         anchors.top:                parent.top
         anchors.horizontalCenter:   parent.horizontalCenter

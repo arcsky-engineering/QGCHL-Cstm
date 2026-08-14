@@ -161,6 +161,7 @@
 		<file alias="QGroundControl/Controls/QGCPipOverlay.qml">../src/QmlControls/QGCPipOverlay.qml</file>
 		<file alias="QGroundControl/Controls/QGCPipState.qml">../src/QmlControls/QGCPipState.qml</file>
 		<file alias="QGroundControl/Controls/QGCRadioButton.qml">../src/QmlControls/QGCRadioButton.qml</file>
+		<file alias="QGroundControl/Controls/MicROMSlider.qml">../src/QmlControls/MicROMSlider.qml</file>
 		<file alias="QGroundControl/Controls/QGCSimpleMessageDialog.qml">../src/QmlControls/QGCSimpleMessageDialog.qml</file>
 		<file alias="QGroundControl/Controls/QGCSlider.qml">../src/QmlControls/QGCSlider.qml</file>
 		<file alias="QGroundControl/Controls/QGCSwitch.qml">../src/QmlControls/QGCSwitch.qml</file>
@@ -259,6 +260,7 @@
 		<file alias="QGroundControl/FlightMap/MissionItemIndicatorDrag.qml">../src/FlightMap/MapItems/MissionItemIndicatorDrag.qml</file>
 		<file alias="QGroundControl/FlightMap/MissionItemView.qml">../src/FlightMap/MapItems/MissionItemView.qml</file>
 		<file alias="QGroundControl/FlightMap/MissionLineView.qml">../src/FlightMap/MapItems/MissionLineView.qml</file>
+		<file alias="QGroundControl/FlightMap/MicROMPhotoVideoControl.qml">../src/FlightMap/Widgets/MicROMPhotoVideoControl.qml</file>
 		<file alias="QGroundControl/FlightMap/PhotoVideoControl.qml">../src/FlightMap/Widgets/PhotoVideoControl.qml</file>
 		<file alias="QGroundControl/FlightMap/PlanMapItems.qml">../src/FlightMap/MapItems/PlanMapItems.qml</file>
 		<file alias="QGroundControl/FlightMap/PolygonEditor.qml">../src/FlightMap/MapItems/PolygonEditor.qml</file>
