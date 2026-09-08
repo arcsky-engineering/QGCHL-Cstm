@@ -167,13 +167,27 @@ Item {
     // _currentStream in VideoManager and restarts the video pipeline.
     Rectangle {
         id:                     rtspStreamSwitchButton
-        anchors.right:          parent.right
+        // Steps aside for the guided value slider the same way the widget layer
+        // does, rather than sitting underneath it. Both occupy this right edge
+        // at the same width, so without this the button is simply hidden
+        // whenever a guided altitude change is in progress.
+        anchors.right:          guidedValueSlider.visible ? guidedValueSlider.left : parent.right
         anchors.verticalCenter: parent.verticalCenter
         anchors.rightMargin:    _toolsMargin
         width:                  ScreenTools.defaultFontPixelWidth * 10
         height:                 ScreenTools.defaultFontPixelHeight * 2.8
         radius:                 ScreenTools.defaultFontPixelWidth / 2
-        z:                      QGroundControl.zOrderTopMost
+        // Bottom of the overlay stack, just above the full screen map/video it
+        // sits on. zOrderTopMost put it in the same band as the guided action
+        // overlays, and being declared after them it painted on top: the guided
+        // value slider is a full height strip on this same right edge, at this
+        // same width, so the altitude slider ended up behind this button.
+        //
+        // This also lets the fly view widgets cover it. z is not transitive, so
+        // nothing inside FlyViewWidgetLayer could ever beat this button while it
+        // outranked the layer itself, which is why the micROM settings fly-out
+        // opened behind it.
+        z:                      _fullItemZorder
         color:                  "#80000000"
         border.color:           "white"
         border.width:           1
