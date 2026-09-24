@@ -9,7 +9,7 @@ message("Adding Custom Herelink Plugin")
 #   otherwise the Android version code below runs out of room.
 
 ARCSKY_VER_MAJOR = 1
-ARCSKY_VER_MINOR = 0
+ARCSKY_VER_MINOR = 1
 ARCSKY_VER_PATCH = 0
 
 #   The upstream QGroundControl release this fork is based on. Displayed next to
