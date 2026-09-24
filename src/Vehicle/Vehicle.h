@@ -16,6 +16,7 @@
 #include <QTime>
 #include <QQueue>
 #include <QSharedPointer>
+#include <QHash>
 
 #include "FactGroup.h"
 #include "QGCMAVLink.h"
@@ -1111,6 +1112,7 @@ private:
 #endif
     void _handleCameraImageCaptured     (const mavlink_message_t& message);
     void _addCameraTriggerPoint         (const QGeoCoordinate& coord);
+    void _countCameraCapture            (uint8_t compId, int imageIndex, bool fromCamera);
     void _handleADSBVehicle             (const mavlink_message_t& message);
     void _handleRawImuTemp              (mavlink_message_t& message);
     void _missionManagerError           (int errorCode, const QString& errorMsg);
@@ -1248,6 +1250,8 @@ private:
     TrajectoryPoints*               _trajectoryPoints = nullptr;
     QmlObjectListModel              _cameraTriggerPoints;
     int                             _cameraTriggerCount = 0;    ///< Monotonic count of captures; independent of the 10-item icon buffer
+    bool                            _cameraCaptureCountFromCamera = false;  ///< Set once a CAMERA_IMAGE_CAPTURED arrives; CAMERA_FEEDBACK then stops counting
+    QHash<uint8_t, int>             _lastCameraCaptureIndex;    ///< Last image index counted, per component, to skip resent messages
     //QMap<QString, ADSBVehicle*>     _trafficVehicleMap;
 
     // Toolbox references

@@ -859,7 +859,8 @@ void Vehicle::_mavlinkMessageReceived(LinkInterface* link, mavlink_message_t mes
 static const int    kCameraTriggerPointsMaxCount = 10;
 // Drop a new icon if it's within this distance of the previous one. CAMERA_FEEDBACK
 // (autopilot) and CAMERA_IMAGE_CAPTURED (camera) often report the same shot, so
-// the two arrive seconds apart at virtually the same coordinate.
+// the two arrive seconds apart at virtually the same coordinate. This only thins
+// out the map icons; the capture count is kept by _countCameraCapture.
 static const double kCameraTriggerDedupMeters    = 2.0;
 
 void Vehicle::_addCameraTriggerPoint(const QGeoCoordinate& coord)
@@ -870,11 +871,6 @@ void Vehicle::_addCameraTriggerPoint(const QGeoCoordinate& coord)
             return;
         }
     }
-    // Count every accepted (deduplicated) capture. This is decoupled from the map-icon
-    // buffer below, which is capped at kCameraTriggerPointsMaxCount, so the displayed
-    // photo count keeps growing while only the last N icons are drawn.
-    _cameraTriggerCount++;
-    emit cameraTriggerCountChanged(_cameraTriggerCount);
 
     _cameraTriggerPoints.append(new QGCQGeoCoordinate(coord, this));
     while (_cameraTriggerPoints.count() > kCameraTriggerPointsMaxCount) {
@@ -883,6 +879,29 @@ void Vehicle::_addCameraTriggerPoint(const QGeoCoordinate& coord)
             removed->deleteLater();
         }
     }
+}
+
+// Count every image actually fired, including repeated shots from one spot. The
+// autopilot (CAMERA_FEEDBACK) and the camera (CAMERA_IMAGE_CAPTURED) number their
+// shots independently, so the two can't be matched against each other. Instead,
+// once the camera reports a capture it becomes the only counting source.
+void Vehicle::_countCameraCapture(uint8_t compId, int imageIndex, bool fromCamera)
+{
+    if (fromCamera) {
+        _cameraCaptureCountFromCamera = true;
+    } else if (_cameraCaptureCountFromCamera) {
+        return;
+    }
+    // Skip a resent report of the shot we just counted. A negative index means
+    // the sender doesn't number its shots, so count those unconditionally.
+    if (imageIndex >= 0) {
+        if (_lastCameraCaptureIndex.value(compId, -1) == imageIndex) {
+            return;
+        }
+        _lastCameraCaptureIndex[compId] = imageIndex;
+    }
+    _cameraTriggerCount++;
+    emit cameraTriggerCountChanged(_cameraTriggerCount);
 }
 
 #if !defined(NO_ARDUPILOT_DIALECT)
@@ -894,6 +913,7 @@ void Vehicle::_handleCameraFeedback(const mavlink_message_t& message)
 
     QGeoCoordinate imageCoordinate((double)feedback.lat / qPow(10.0, 7.0), (double)feedback.lng / qPow(10.0, 7.0), feedback.alt_msl);
     qCDebug(VehicleLog) << "_handleCameraFeedback coord:index" << imageCoordinate << feedback.img_idx;
+    _countCameraCapture(message.compid, feedback.img_idx, false);
     _addCameraTriggerPoint(imageCoordinate);
 }
 
@@ -951,6 +971,7 @@ void Vehicle::_handleCameraImageCaptured(const mavlink_message_t& message)
     QGeoCoordinate imageCoordinate((double)feedback.lat / qPow(10.0, 7.0), (double)feedback.lon / qPow(10.0, 7.0), feedback.alt);
     qCDebug(VehicleLog) << "_handleCameraFeedback coord:index" << imageCoordinate << feedback.image_index << feedback.capture_result;
     if (feedback.capture_result == 1) {
+        _countCameraCapture(message.compid, feedback.image_index, true);
         _addCameraTriggerPoint(imageCoordinate);
     }
 }
@@ -2468,6 +2489,8 @@ void Vehicle::_clearCameraTriggerPoints()
 {
     _cameraTriggerPoints.clearAndDeleteContents();
     _cameraTriggerCount = 0;
+    _cameraCaptureCountFromCamera = false;
+    _lastCameraCaptureIndex.clear();
     emit cameraTriggerCountChanged(_cameraTriggerCount);
 }
 
