@@ -10,8 +10,11 @@
 #                 build that produced the APK)
 #
 # Produces e.g.
-#   ArcskyControl-v1.0.0-20260811.apk                    (release: HEAD is on its v tag)
-#   ArcskyControl-v1.0.0-dev-5c604bd77-20260811.apk      (dev build)
+#   ArcskyControlHerelink-Universal-v1.0.0-20260811.apk               (release)
+#   ArcskyControlHerelink-Universal-v1.0.0-dev-5c604bd77-20260811.apk (dev build)
+#
+# The Herelink-Universal part matches the filenames the shop already programs
+# from in Dropbox, and distinguishes these from the Desktop Installer builds.
 #
 # The version is read from custom/custom.pri, so that file stays the single
 # source of truth. The original APK is copied, not moved.
@@ -113,7 +116,7 @@ else
 fi
 
 BUILD_DATE=$(date +%Y%m%d)
-APK_NAME="ArcskyControl-v${VERSION}${SUFFIX}-${BUILD_DATE}.apk"
+APK_NAME="ArcskyControlHerelink-Universal-v${VERSION}${SUFFIX}-${BUILD_DATE}.apk"
 
 mkdir -p "$OUTPUT_DIR"
 cp "$APK" "$OUTPUT_DIR/$APK_NAME"
