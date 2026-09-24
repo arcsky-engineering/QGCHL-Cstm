@@ -14,7 +14,7 @@ ARCSKY_VER_PATCH = 0
 
 #   The upstream QGroundControl release this fork is based on. Displayed next to
 #   our version for support purposes. Update this when rebasing onto new QGC.
-ARCSKY_QGC_BASE_VERSION = 4.4.1
+ARCSKY_QGC_BASE_VERSION = 4.4.0
 
 linux {
     QMAKE_CXXFLAGS_WARN_ON += -Wno-strict-aliasing
