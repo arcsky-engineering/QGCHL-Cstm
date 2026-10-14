@@ -389,8 +389,15 @@ void MicROMController::_parseResponse(const QByteArray& data)
     }
 
     // Date/time readback: CI_DATR<YYYY MM DD hh mm ss>
-    if (response.startsWith("CI_DATR")) {
-        const QString  stamp      = response.mid(7).trimmed();
+    //
+    // Accepts the bare DATR form too. OFIL quoted the reply as "DATRYYYY..."
+    // with no direction sign, exactly as they quoted the command as "DATS"
+    // before confirming it needs the IC_ prefix. Every other reply from this
+    // camera is CI_ prefixed so that is the likely shape, but guessing wrong
+    // means the clock silently never populates, which is a poor thing to
+    // discover on the aircraft.
+    if (response.startsWith("CI_DATR") || response.startsWith("DATR")) {
+        const QString  stamp      = response.mid(response.startsWith("CI_DATR") ? 7 : 4).trimmed();
         const QDateTime cameraTime = QDateTime::fromString(stamp, QString::fromLatin1(kMicROMDateTimeFormat));
 
         if (cameraTime.isValid()) {
