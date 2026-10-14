@@ -39,6 +39,8 @@ public:
     Q_PROPERTY(int      videoTriggerChannel READ videoTriggerChannel WRITE setVideoTriggerChannel NOTIFY videoTriggerChannelChanged)
     Q_PROPERTY(bool     commandReady        READ commandReady        NOTIFY commandReadyChanged)
     Q_PROPERTY(int      cooldownRemaining   READ cooldownRemaining   NOTIFY cooldownRemainingChanged)
+    Q_PROPERTY(QString  cameraDateTime      READ cameraDateTime      NOTIFY cameraDateTimeChanged)
+    Q_PROPERTY(int      cameraClockSkewSecs READ cameraClockSkewSecs NOTIFY cameraDateTimeChanged)
 
     bool    connected() const       { return _connected; }
     bool    recording() const       { return _recording; }
@@ -58,6 +60,13 @@ public:
     bool    commandReady() const        { return _cooldownRemaining == 0; }
     int     cooldownRemaining() const   { return _cooldownRemaining; }
 
+    /// Last date/time the camera reported, formatted for display. Empty until
+    /// it has answered a query.
+    QString cameraDateTime() const      { return _cameraDateTime; }
+    /// Absolute difference in seconds between the camera's clock and ours at
+    /// the last readback, or -1 if unknown.
+    int     cameraClockSkewSecs() const { return _cameraClockSkewSecs; }
+
     void setCameraIP(const QString& ip);
     void setCamTriggerChannel(int channel);
     void setVideoTriggerChannel(int channel);
@@ -70,6 +79,12 @@ public:
     Q_INVOKABLE void setGain(int value);
     Q_INVOKABLE void setUVColor(int value);
     Q_INVOKABLE void queryStatus();
+
+    /// Push the ground station's local time to the camera. It has no clock of
+    /// its own and no way to obtain the time, so this runs on every connect.
+    /// Not a capture, so it bypasses the capture lockout entirely.
+    Q_INVOKABLE void syncDateTime();
+    Q_INVOKABLE void queryDateTime();
 
 signals:
     void connectedChanged();
@@ -87,6 +102,7 @@ signals:
     void videoTriggerChannelChanged();
     void commandReadyChanged();
     void cooldownRemainingChanged();
+    void cameraDateTimeChanged();
 
 private slots:
     void _readPendingDatagrams();
@@ -109,6 +125,8 @@ private:
     QTimer*     _keepaliveTimer      = nullptr;
     QTimer*     _cooldownTimer       = nullptr;
     int         _cooldownRemaining   = 0;      // Seconds left in the capture lockout
+    QString     _cameraDateTime;               // Last clock value the camera reported
+    int         _cameraClockSkewSecs = -1;     // Camera vs GCS at last readback, -1 unknown
 
     QString     _cameraIP            = "192.168.144.2";
     quint16     _sendPort            = 4526;
@@ -150,4 +168,8 @@ private:
     // are left to be reported honestly through lastError rather than guessed
     // at here.
     static const int COMMAND_COOLDOWN_SEC    = 5;
+
+    // Gap between pushing the clock and reading it back. Querying immediately
+    // races the set and verifies against the old value.
+    static const int DATETIME_VERIFY_DELAY_MS = 1000;
 };

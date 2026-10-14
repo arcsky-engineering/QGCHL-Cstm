@@ -16,6 +16,16 @@
 #include "AppSettings.h"
 #include <QDebug>
 #include <QSettings>
+#include <QDateTime>
+
+// OFIL date/time wire format, confirmed by OFIL 2026-10-14:
+//     set    IC_DATSYYYY MM DD hh mm ss
+//     query  IC_DATQ  ->  CI_DATRYYYY MM DD hh mm ss
+//
+// Local time, not UTC, on OFIL's instruction. Their letters line up with Qt's
+// except for the hour: Qt's "hh" silently switches to 12 hour when an am/pm
+// specifier is present, so "HH" is used to pin it to 24 hour.
+static const char* kMicROMDateTimeFormat = "yyyy MM dd HH mm ss";
 
 MicROMController::MicROMController(QObject* parent)
     : QObject(parent)
@@ -214,6 +224,28 @@ void MicROMController::queryStatus()
     _sendCommand("IC_SDPQ");  // Query SD card presence
 }
 
+void MicROMController::syncDateTime()
+{
+    // Deliberately not gated by commandReady() and deliberately does not start
+    // a cooldown: the lockout exists to stop back-to-back captures corrupting
+    // files, and this is neither a capture nor able to corrupt anything. Gating
+    // it would also mean a clock push on connect blocked the first photo.
+    const QDateTime now = QDateTime::currentDateTime();
+    const QString   stamp = now.toString(QString::fromLatin1(kMicROMDateTimeFormat));
+
+    qDebug() << "MicROMController: Setting camera clock to" << stamp;
+    _sendCommand(QStringLiteral("IC_DATS") + stamp);
+
+    // Read back after a beat rather than straight away, so the query does not
+    // race the set and confirm the clock we just replaced.
+    QTimer::singleShot(DATETIME_VERIFY_DELAY_MS, this, &MicROMController::queryDateTime);
+}
+
+void MicROMController::queryDateTime()
+{
+    _sendCommand("IC_DATQ");
+}
+
 void MicROMController::_sendCommand(const QString& command)
 {
     QByteArray data = command.toLatin1();
@@ -286,6 +318,10 @@ void MicROMController::_parseResponse(const QByteArray& data)
             _connected = true;
             emit connectedChanged();
             qDebug() << "MicROMController: Connected to camera";
+            // The camera has no clock of its own and cannot obtain the time,
+            // so push ours on every connect. Reconnects included: it loses the
+            // time on each power cycle, and a reconnect is how that shows up.
+            syncDateTime();
             // Query initial status
             queryStatus();
         }
@@ -349,6 +385,27 @@ void MicROMController::_parseResponse(const QByteArray& data)
             emit sdCardPresentChanged();
         }
         qDebug() << "MicROMController: SD card present:" << _sdCardPresent;
+        return;
+    }
+
+    // Date/time readback: CI_DATR<YYYY MM DD hh mm ss>
+    if (response.startsWith("CI_DATR")) {
+        const QString  stamp      = response.mid(7).trimmed();
+        const QDateTime cameraTime = QDateTime::fromString(stamp, QString::fromLatin1(kMicROMDateTimeFormat));
+
+        if (cameraTime.isValid()) {
+            _cameraDateTime      = cameraTime.toString("yyyy-MM-dd HH:mm:ss");
+            _cameraClockSkewSecs = static_cast<int>(qAbs(cameraTime.secsTo(QDateTime::currentDateTime())));
+            qDebug() << "MicROMController: Camera clock is" << _cameraDateTime
+                     << "skew" << _cameraClockSkewSecs << "s";
+        } else {
+            // Show whatever it said rather than nothing, so a format change on
+            // their side is visible instead of looking like no response at all
+            _cameraDateTime      = stamp;
+            _cameraClockSkewSecs = -1;
+            qWarning() << "MicROMController: Could not parse date/time response:" << response;
+        }
+        emit cameraDateTimeChanged();
         return;
     }
 

@@ -35,6 +35,11 @@ CMD_PORT = 4526   # we listen here
 RSP_PORT = 4527   # QGC listens here
 
 
+# Date/time wire format, per OFIL: IC_DATSYYYY MM DD hh mm ss, local time.
+# The query IC_DATQ comes back as CI_DATRYYYY MM DD hh mm ss.
+DATETIME_FIELDS = 6
+
+
 class FakeCamera:
     def __init__(self, sd_present=True):
         self.zoom = 0
@@ -42,6 +47,9 @@ class FakeCamera:
         self.uv_color = 0
         self.recording = False
         self.sd_present = sd_present
+        # A real camera powers up with no clock at all, so start unset: that is
+        # the state QGC is supposed to correct on connect.
+        self.date_time = None
 
     def handle(self, cmd):
         """Map one IC_ command to a list of CI_ responses."""
@@ -80,6 +88,23 @@ class FakeCamera:
                 setattr(self, attr, value)
                 # Response prefix is the command prefix with IC_ -> CI_
                 return ["CI_" + prefix[3:] + str(value)]
+
+        # Set the clock. Validated rather than just accepted, so a malformed
+        # command shows up here instead of silently looking like it worked.
+        if cmd.startswith("IC_DATS"):
+            stamp = cmd[len("IC_DATS"):].strip()
+            fields = stamp.split()
+            if len(fields) != DATETIME_FIELDS or not all(f.isdigit() for f in fields):
+                print("  !! IC_DATS malformed: %r (want %d numeric fields)"
+                      % (stamp, DATETIME_FIELDS))
+                return ["CI_DATRERR"]
+            self.date_time = " ".join(fields)
+            return ["CI_DATR" + self.date_time]
+
+        if cmd == "IC_DATQ":
+            if self.date_time is None:
+                return ["CI_DATRERR"]
+            return ["CI_DATR" + self.date_time]
 
         # Queries, sent once on connect
         if cmd == "IC_MZQ":
@@ -136,9 +161,10 @@ def main():
         # Keepalives are every 5s and would drown out anything interesting
         if cmd != "IC_ALVS":
             state = "rec" if cam.recording else "idle"
-            print("  <- %-14s -> %-12s [zoom %d, gain %d, uv %d, %s]"
+            clock = cam.date_time or "unset"
+            print("  <- %-22s -> %-26s [zoom %d, gain %d, uv %d, %s, clock %s]"
                   % (cmd, ",".join(responses) or "-",
-                     cam.zoom, cam.gain, cam.uv_color, state))
+                     cam.zoom, cam.gain, cam.uv_color, state, clock))
 
 
 if __name__ == "__main__":

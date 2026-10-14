@@ -254,6 +254,64 @@ Item {
                     color:                  qgcPal.windowShade
                 }
 
+                // Camera clock. The camera has no clock of its own and cannot
+                // obtain the time, so QGC pushes local time on every connect.
+                // This is here rather than in the fly view fly-out because it
+                // is a setup check, not something to reach for mid-flight.
+                ColumnLayout {
+                    id:                 clockLayout
+                    Layout.fillWidth:   true
+                    spacing:            ScreenTools.defaultFontPixelHeight * 0.25
+
+                    property int  _skew:    _micromController ? _micromController.cameraClockSkewSecs : -1
+                    // Only meaningful once the camera has answered a query
+                    property bool _known:   _micromController && _micromController.cameraDateTime !== ""
+
+                    QGCLabel {
+                        text:               qsTr("Camera Clock")
+                        font.weight:        Font.Medium
+                        Layout.alignment:   Qt.AlignHCenter
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth:   true
+                        spacing:            ScreenTools.defaultFontPixelWidth
+
+                        QGCLabel {
+                            Layout.fillWidth:   true
+                            text:               clockLayout._known ?
+                                                    _micromController.cameraDateTime :
+                                                    qsTr("Not reported yet")
+                            // Orange past a minute out: the camera stamps files
+                            // with this, and a wrong stamp looks just as
+                            // authoritative as a right one
+                            color:              clockLayout._skew > 60 ? qgcPal.colorOrange : qgcPal.text
+                            opacity:            clockLayout._known ? 1 : 0.6
+                        }
+
+                        QGCButton {
+                            text:               qsTr("Sync")
+                            enabled:            _micromController && _micromController.connected
+                            onClicked:          _micromController.syncDateTime()
+                        }
+                    }
+
+                    QGCLabel {
+                        text:               qsTr("Off by %1s from this device").arg(clockLayout._skew)
+                        font.pointSize:     ScreenTools.smallFontPointSize
+                        color:              qgcPal.colorOrange
+                        Layout.alignment:   Qt.AlignHCenter
+                        visible:            clockLayout._skew > 60
+                    }
+                }
+
+                // Separator
+                Rectangle {
+                    Layout.fillWidth:       true
+                    Layout.preferredHeight: 1
+                    color:                  qgcPal.windowShade
+                }
+
                 // RC channel triggers
                 ColumnLayout {
                     id:                 rcTriggerLayout
