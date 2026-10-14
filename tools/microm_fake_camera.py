@@ -28,8 +28,10 @@ Protocol notes (see src/MicROM/MicROMController.cc):
 """
 
 import argparse
+import datetime
 import socket
 import sys
+import time
 
 CMD_PORT = 4526   # we listen here
 RSP_PORT = 4527   # QGC listens here
@@ -49,7 +51,22 @@ class FakeCamera:
         self.sd_present = sd_present
         # A real camera powers up with no clock at all, so start unset: that is
         # the state QGC is supposed to correct on connect.
-        self.date_time = None
+        #
+        # Held as the instant it was set plus a monotonic reference, so the
+        # clock runs on afterwards like a real one. Echoing back a frozen
+        # string would hide drift, which is the one thing this is here to show.
+        self._set_to = None
+        self._set_at = None
+
+    def now(self):
+        """What the camera currently believes the time is, or None if unset."""
+        if self._set_to is None:
+            return None
+        return self._set_to + datetime.timedelta(seconds=time.monotonic() - self._set_at)
+
+    def now_str(self):
+        stamp = self.now()
+        return stamp.strftime("%Y %m %d %H %M %S") if stamp else None
 
     def handle(self, cmd):
         """Map one IC_ command to a list of CI_ responses."""
@@ -98,13 +115,19 @@ class FakeCamera:
                 print("  !! IC_DATS malformed: %r (want %d numeric fields)"
                       % (stamp, DATETIME_FIELDS))
                 return ["CI_DATRERR"]
-            self.date_time = " ".join(fields)
-            return ["CI_DATR" + self.date_time]
+            try:
+                self._set_to = datetime.datetime.strptime(" ".join(fields), "%Y %m %d %H %M %S")
+            except ValueError as exc:
+                print("  !! IC_DATS not a real date: %r (%s)" % (stamp, exc))
+                return ["CI_DATRERR"]
+            self._set_at = time.monotonic()
+            return ["CI_DATR" + self.now_str()]
 
         if cmd == "IC_DATQ":
-            if self.date_time is None:
+            stamp = self.now_str()
+            if stamp is None:
                 return ["CI_DATRERR"]
-            return ["CI_DATR" + self.date_time]
+            return ["CI_DATR" + stamp]
 
         # Queries, sent once on connect
         if cmd == "IC_MZQ":
@@ -161,7 +184,7 @@ def main():
         # Keepalives are every 5s and would drown out anything interesting
         if cmd != "IC_ALVS":
             state = "rec" if cam.recording else "idle"
-            clock = cam.date_time or "unset"
+            clock = cam.now_str() or "unset"
             print("  <- %-22s -> %-26s [zoom %d, gain %d, uv %d, %s, clock %s]"
                   % (cmd, ",".join(responses) or "-",
                      cam.zoom, cam.gain, cam.uv_color, state, clock))

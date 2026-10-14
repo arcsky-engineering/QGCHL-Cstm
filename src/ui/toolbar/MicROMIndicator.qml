@@ -267,6 +267,19 @@ Item {
                     // Only meaningful once the camera has answered a query
                     property bool _known:   _micromController && _micromController.cameraDateTime !== ""
 
+                    // The camera reports its clock only when asked, so without
+                    // this the panel would show the reading taken a second
+                    // after connect and never move, which reads as a stopped
+                    // clock rather than a stale one. Polling only while this
+                    // panel exists keeps it off a camera that dislikes chatter.
+                    Timer {
+                        interval:           5000
+                        repeat:             true
+                        triggeredOnStart:   true
+                        running:            _micromController && _micromController.connected
+                        onTriggered:        _micromController.queryDateTime()
+                    }
+
                     QGCLabel {
                         text:               qsTr("Camera Clock")
                         font.weight:        Font.Medium
